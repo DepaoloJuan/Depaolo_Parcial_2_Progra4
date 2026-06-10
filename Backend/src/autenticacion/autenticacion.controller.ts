@@ -1,22 +1,35 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AutenticacionService } from './autenticacion.service';
 import { CrearUsuarioDto } from '../usuarios/dto/crear-usuario.dto';
 import { LoginDto } from './dto/login.dto';
+import { multerConfig } from '../cloudinary/multer.config';
 
 @Controller('autenticacion')
 export class AutenticacionController {
   constructor(private readonly autenticacionService: AutenticacionService) {}
 
   // POST /api/v1/autenticacion/registro
-  // HttpStatus.CREATED = 201 — correcto para creación de recursos
+  // multipart/form-data porque recibe imagen + datos de texto
   @Post('registro')
   @HttpCode(HttpStatus.CREATED)
-  async registrar(@Body() dto: CrearUsuarioDto) {
-    return this.autenticacionService.registrar(dto);
+  @UseInterceptors(FileInterceptor('fotoPerfil', multerConfig))
+  async registrar(
+    @Body() dto: CrearUsuarioDto,
+    @UploadedFile() imagen?: Express.Multer.File,
+  ) {
+    return this.autenticacionService.registrar(dto, imagen);
   }
 
   // POST /api/v1/autenticacion/login
-  // HttpStatus.OK = 200 — correcto para login
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() dto: LoginDto) {

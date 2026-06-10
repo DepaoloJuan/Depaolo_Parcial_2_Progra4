@@ -2,13 +2,10 @@ import { Module } from '@nestjs/common';
 import { AutenticacionController } from './autenticacion.controller';
 import { AutenticacionService } from './autenticacion.service';
 import { UsuariosModule } from '../usuarios/usuarios.module';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
 @Module({
-  imports: [
-    // importamos UsuariosModule para poder usar UsuariosService
-    // esto funciona porque UsuariosModule exporta UsuariosService
-    UsuariosModule,
-  ],
+  imports: [UsuariosModule, CloudinaryModule],
   controllers: [AutenticacionController],
   providers: [AutenticacionService],
 })
