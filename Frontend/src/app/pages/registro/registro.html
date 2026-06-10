@@ -1,0 +1,190 @@
+<div class="min-vh-100 d-flex align-items-center justify-content-center py-4">
+  <div class="card shadow p-4" style="width: 100%; max-width: 520px;">
+
+    <h2 class="text-center mb-4">Crear cuenta</h2>
+
+    <form [formGroup]="formulario" (ngSubmit)="onSubmit()">
+
+      <!-- Nombre y Apellido -->
+      <div class="row mb-3">
+        <div class="col">
+          <label for="nombre" class="form-label">Nombre</label>
+          <input
+            id="nombre"
+            type="text"
+            class="form-control"
+            [class.is-invalid]="campoInvalido('nombre')"
+            formControlName="nombre"
+            placeholder="Tu nombre"
+          />
+          @if (campoInvalido('nombre')) {
+            <div class="invalid-feedback">El nombre es obligatorio</div>
+          }
+        </div>
+        <div class="col">
+          <label for="apellido" class="form-label">Apellido</label>
+          <input
+            id="apellido"
+            type="text"
+            class="form-control"
+            [class.is-invalid]="campoInvalido('apellido')"
+            formControlName="apellido"
+            placeholder="Tu apellido"
+          />
+          @if (campoInvalido('apellido')) {
+            <div class="invalid-feedback">El apellido es obligatorio</div>
+          }
+        </div>
+      </div>
+
+      <!-- Correo -->
+      <div class="mb-3">
+        <label for="correo" class="form-label">Correo electrónico</label>
+        <input
+          id="correo"
+          type="email"
+          class="form-control"
+          [class.is-invalid]="campoInvalido('correo')"
+          formControlName="correo"
+          placeholder="tu@correo.com"
+        />
+        @if (campoInvalido('correo')) {
+          @if (formulario.get('correo')?.errors?.['required']) {
+            <div class="invalid-feedback">El correo es obligatorio</div>
+          } @else if (formulario.get('correo')?.errors?.['email']) {
+            <div class="invalid-feedback">El correo no tiene un formato válido</div>
+          }
+        }
+      </div>
+
+      <!-- Nombre de usuario -->
+      <div class="mb-3">
+        <label for="nombreUsuario" class="form-label">Nombre de usuario</label>
+        <input
+          id="nombreUsuario"
+          type="text"
+          class="form-control"
+          [class.is-invalid]="campoInvalido('nombreUsuario')"
+          formControlName="nombreUsuario"
+          placeholder="nombre_usuario"
+        />
+        @if (campoInvalido('nombreUsuario')) {
+          @if (formulario.get('nombreUsuario')?.errors?.['required']) {
+            <div class="invalid-feedback">El nombre de usuario es obligatorio</div>
+          } @else if (formulario.get('nombreUsuario')?.errors?.['minlength']) {
+            <div class="invalid-feedback">Mínimo 3 caracteres</div>
+          }
+        }
+      </div>
+
+      <!-- Contraseña -->
+      <div class="mb-3">
+        <label for="contrasenia" class="form-label">Contraseña</label>
+        <input
+          id="contrasenia"
+          type="password"
+          class="form-control"
+          [class.is-invalid]="campoInvalido('contrasenia')"
+          formControlName="contrasenia"
+          placeholder="Mínimo 8 caracteres, una mayúscula y un número"
+        />
+        @if (campoInvalido('contrasenia')) {
+          @if (formulario.get('contrasenia')?.errors?.['required']) {
+            <div class="invalid-feedback">La contraseña es obligatoria</div>
+          } @else if (formulario.get('contrasenia')?.errors?.['minlength']) {
+            <div class="invalid-feedback">Mínimo 8 caracteres</div>
+          } @else if (formulario.get('contrasenia')?.errors?.['pattern']) {
+            <div class="invalid-feedback">Debe tener al menos una mayúscula y un número</div>
+          }
+        }
+      </div>
+
+      <!-- Repetir contraseña -->
+      <div class="mb-3">
+        <label for="repetirContrasenia" class="form-label">Repetir contraseña</label>
+        <input
+          id="repetirContrasenia"
+          type="password"
+          class="form-control"
+          [class.is-invalid]="campoInvalido('repetirContrasenia') || (formulario.errors?.['noCoinciden'] && formulario.get('repetirContrasenia')?.touched)"
+          formControlName="repetirContrasenia"
+          placeholder="Repetí tu contraseña"
+        />
+        @if (campoInvalido('repetirContrasenia')) {
+          <div class="invalid-feedback">Repetí la contraseña</div>
+        } @else if (formulario.errors?.['noCoinciden'] && formulario.get('repetirContrasenia')?.touched) {
+          <div class="invalid-feedback d-block">Las contraseñas no coinciden</div>
+        }
+      </div>
+
+      <!-- Fecha de nacimiento -->
+      <div class="mb-3">
+        <label for="fechaNacimiento" class="form-label">Fecha de nacimiento</label>
+        <input
+          id="fechaNacimiento"
+          type="date"
+          class="form-control"
+          [class.is-invalid]="campoInvalido('fechaNacimiento')"
+          formControlName="fechaNacimiento"
+        />
+        @if (campoInvalido('fechaNacimiento')) {
+          <div class="invalid-feedback">La fecha de nacimiento es obligatoria</div>
+        }
+      </div>
+
+      <!-- Descripción -->
+      <div class="mb-3">
+        <label for="descripcion" class="form-label">Descripción breve <span class="text-muted">(opcional)</span></label>
+        <textarea
+          id="descripcion"
+          class="form-control"
+          formControlName="descripcion"
+          rows="2"
+          placeholder="Contá algo sobre vos..."
+        ></textarea>
+      </div>
+
+      <!-- Foto de perfil -->
+      <div class="mb-3">
+        <label for="fotoPerfil" class="form-label">Foto de perfil <span class="text-muted">(opcional)</span></label>
+        @if (previsualizacion()) {
+          <div class="mb-2 text-center">
+            <img [src]="previsualizacion()" alt="Vista previa" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;" />
+          </div>
+        }
+        <input
+          id="fotoPerfil"
+          type="file"
+          class="form-control"
+          accept="image/jpeg,image/png,image/webp"
+          (change)="onImagenSeleccionada($event)"
+        />
+      </div>
+
+      <!-- Error general -->
+      @if (error()) {
+        <div class="alert alert-danger py-2">{{ error() }}</div>
+      }
+
+      <!-- Botón -->
+      <button
+        type="submit"
+        class="btn btn-primary w-100"
+        [disabled]="formulario.invalid || cargando()"
+      >
+        @if (cargando()) {
+          <span class="spinner-border spinner-border-sm me-2"></span>
+          Registrando...
+        } @else {
+          Crear cuenta
+        }
+      </button>
+
+    </form>
+
+    <p class="text-center mt-3 mb-0">
+      ¿Ya tenés cuenta? <a routerLink="/login">Iniciá sesión</a>
+    </p>
+
+  </div>
+</div>

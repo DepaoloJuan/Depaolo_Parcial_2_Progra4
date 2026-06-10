@@ -1,0 +1,72 @@
+<div class="min-vh-100 d-flex align-items-center justify-content-center">
+  <div class="card shadow p-4" style="width: 100%; max-width: 420px;">
+
+    <h2 class="text-center mb-4">Iniciar Sesión</h2>
+
+    <form [formGroup]="formulario" (ngSubmit)="onSubmit()">
+
+      <!-- Identificador -->
+      <div class="mb-3">
+        <label for="identificador" class="form-label">Correo o nombre de usuario</label>
+        <input
+          id="identificador"
+          type="text"
+          class="form-control"
+          [class.is-invalid]="campoInvalido('identificador')"
+          formControlName="identificador"
+          placeholder="Ingresá tu correo o nombre de usuario"
+        />
+        @if (campoInvalido('identificador')) {
+          <div class="invalid-feedback">El identificador es obligatorio</div>
+        }
+      </div>
+
+      <!-- Contraseña -->
+      <div class="mb-3">
+        <label for="contrasenia" class="form-label">Contraseña</label>
+        <input
+          id="contrasenia"
+          type="password"
+          class="form-control"
+          [class.is-invalid]="campoInvalido('contrasenia')"
+          formControlName="contrasenia"
+          placeholder="Ingresá tu contraseña"
+        />
+        @if (campoInvalido('contrasenia')) {
+          @if (formulario.get('contrasenia')?.errors?.['required']) {
+            <div class="invalid-feedback">La contraseña es obligatoria</div>
+          } @else if (formulario.get('contrasenia')?.errors?.['minlength']) {
+            <div class="invalid-feedback">Mínimo 8 caracteres</div>
+          } @else if (formulario.get('contrasenia')?.errors?.['pattern']) {
+            <div class="invalid-feedback">Debe tener al menos una mayúscula y un número</div>
+          }
+        }
+      </div>
+
+      <!-- Error general del servidor -->
+      @if (error()) {
+        <div class="alert alert-danger py-2">{{ error() }}</div>
+      }
+
+      <!-- Botón -->
+      <button
+        type="submit"
+        class="btn btn-primary w-100"
+        [disabled]="formulario.invalid || cargando()"
+      >
+        @if (cargando()) {
+          <span class="spinner-border spinner-border-sm me-2"></span>
+          Iniciando sesión...
+        } @else {
+          Iniciar sesión
+        }
+      </button>
+
+    </form>
+
+    <p class="text-center mt-3 mb-0">
+      ¿No tenés cuenta? <a routerLink="/registro">Registrate</a>
+    </p>
+
+  </div>
+</div>

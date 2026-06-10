@@ -1,0 +1,34 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+    <a class="navbar-brand fw-bold" routerLink="/publicaciones">RedSocial</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/publicaciones" routerLinkActive="active">Publicaciones</a>
+        </li>
+      </ul>
+      <ul class="navbar-nav ms-auto">
+        @if (usuarioActual()) {
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/mi-perfil" routerLinkActive="active">
+              @if (usuarioActual()?.fotoPerfil) {
+                <img [src]="usuarioActual()?.fotoPerfil" class="rounded-circle me-1" style="width:28px;height:28px;object-fit:cover;" />
+              }
+              {{ usuarioActual()?.nombreUsuario }}
+            </a>
+          </li>
+          <li class="nav-item">
+            <button class="btn btn-outline-light btn-sm ms-2" (click)="logout()">Cerrar sesión</button>
+          </li>
+        } @else {
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/login">Iniciar sesión</a>
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+</nav>
