@@ -22,7 +22,10 @@ async function bootstrap() {
 
   // CORS — permite que Angular (localhost:4200) se comunique con este servidor
   app.enableCors({
-    origin: ['http://localhost:4200'],
+    origin: [
+      'http://localhost:4200',
+      'https://depaolo-parcial-2-progra4.vercel.app', // tu URL de Vercel
+    ],
     credentials: true,
   });
 
