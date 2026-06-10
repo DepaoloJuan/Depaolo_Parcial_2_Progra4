@@ -21,7 +21,13 @@ export class AuthService {
   usuarioActual = this._usuarioActual.asReadonly();
 
   registro(datos: FormData): Observable<Usuario> {
-    return this.http.post<Usuario>(`${environment.apiUrl}/autenticacion/registro`, datos);
+    return this.http
+      .post<Usuario>(`${environment.apiUrl}/autenticacion/registro`, datos)
+      .pipe(
+        tap(() => {
+          this.router.navigate(['/login']);
+        }),
+      );
   }
 
   login(identificador: string, contrasenia: string): Observable<Usuario> {
@@ -32,9 +38,10 @@ export class AuthService {
       })
       .pipe(
         tap((usuario) => {
-          // guardamos el usuario en localStorage y actualizamos la señal
           localStorage.setItem(this.USUARIO_KEY, JSON.stringify(usuario));
           this._usuarioActual.set(usuario);
+          // la navegación va en el servicio, no en el componente
+          this.router.navigate(['/publicaciones']);
         }),
       );
   }
