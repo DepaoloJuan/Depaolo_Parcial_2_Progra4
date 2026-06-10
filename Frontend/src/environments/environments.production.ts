@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://tu-backend-en-render.onrender.com/api/v1',
+  apiUrl: 'https://tp2-redsocial-backend.onrender.com/api/v1',
 };
