@@ -31,7 +31,7 @@ export class Usuario {
   @Prop({ required: true, unique: true, trim: true })
   nombreUsuario!: string;
 
-  @Prop({ required: true, select: false })
+  @Prop({ required: true })
   contrasenia!: string;
 
   @Prop({ required: true })

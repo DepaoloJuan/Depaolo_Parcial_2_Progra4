@@ -13,21 +13,15 @@ export class UsuariosRepository {
 
   async crear(datos: CrearUsuarioDto & { contrasenia: string; fotoPerfil?: string }): Promise<UsuarioDocument> {
     const usuario = new this.modelo(datos);
-    await usuario.save();
-    // buscamos el documento recién creado — esta consulta respeta select: false
-    return this.modelo.findById(usuario._id).exec() as Promise<UsuarioDocument>;
+    return usuario.save();
   }
 
-  async buscarPorCorreo(correo: string, incluirContrasenia = false): Promise<UsuarioDocument | null> {
-    const query = this.modelo.findOne({ correo: correo.toLowerCase() });
-    if (incluirContrasenia) query.select('+contrasenia');
-    return query.exec();
+  async buscarPorCorreo(correo: string): Promise<UsuarioDocument | null> {
+    return this.modelo.findOne({ correo: correo.toLowerCase() }).exec();
   }
 
-  async buscarPorNombreUsuario(nombreUsuario: string, incluirContrasenia = false): Promise<UsuarioDocument | null> {
-    const query = this.modelo.findOne({ nombreUsuario });
-    if (incluirContrasenia) query.select('+contrasenia');
-    return query.exec();
+  async buscarPorNombreUsuario(nombreUsuario: string): Promise<UsuarioDocument | null> {
+    return this.modelo.findOne({ nombreUsuario }).exec();
   }
 
   async existeCorreo(correo: string): Promise<boolean> {
