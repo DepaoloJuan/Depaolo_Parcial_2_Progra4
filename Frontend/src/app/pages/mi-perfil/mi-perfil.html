@@ -1,1 +1,54 @@
-<p>mi-perfil works!</p>
+<app-navbar />
+
+<div class="container mt-4">
+  @if (usuarioActual()) {
+    <div class="card shadow p-4 mx-auto" style="max-width: 600px;">
+
+      <!-- Foto y nombre -->
+      <div class="text-center mb-4">
+        @if (usuarioActual()?.fotoPerfil) {
+          <img
+            [src]="usuarioActual()?.fotoPerfil"
+            class="rounded-circle mb-3"
+            style="width: 100px; height: 100px; object-fit: cover;"
+          />
+        } @else {
+          <div
+            class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto mb-3"
+            style="width: 100px; height: 100px;"
+          >
+            <span class="text-white fs-2">{{ usuarioActual()?.nombre?.charAt(0) }}</span>
+          </div>
+        }
+        <h4>{{ usuarioActual()?.nombre }} {{ usuarioActual()?.apellido }}</h4>
+        <p class="text-muted">&#64;{{ usuarioActual()?.nombreUsuario }}</p>
+      </div>
+
+      <!-- Datos -->
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">
+          <strong>Correo:</strong> {{ usuarioActual()?.correo }}
+        </li>
+        <li class="list-group-item">
+          <strong>Fecha de nacimiento:</strong> {{ usuarioActual()?.fechaNacimiento | date:'dd/MM/yyyy' }}
+        </li>
+        @if (usuarioActual()?.descripcion) {
+          <li class="list-group-item">
+            <strong>Descripción:</strong> {{ usuarioActual()?.descripcion }}
+          </li>
+        }
+        <li class="list-group-item">
+          <strong>Perfil:</strong>
+          <span class="badge ms-1" [class.bg-danger]="usuarioActual()?.perfil === 'administrador'" [class.bg-secondary]="usuarioActual()?.perfil !== 'administrador'">
+            {{ usuarioActual()?.perfil }}
+          </span>
+        </li>
+      </ul>
+
+    </div>
+  } @else {
+    <div class="alert alert-warning text-center">
+      No hay usuario logueado.
+    </div>
+  }
+</div>
