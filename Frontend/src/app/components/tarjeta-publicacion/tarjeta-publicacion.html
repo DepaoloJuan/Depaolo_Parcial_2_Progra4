@@ -1,0 +1,66 @@
+<div class="card mb-3 shadow-sm">
+  <!-- Cabecera con datos del usuario -->
+  <div class="card-header d-flex align-items-center gap-2 bg-white border-bottom">
+    @if (publicacion.usuario.fotoPerfil) {
+      <img
+        [src]="publicacion.usuario.fotoPerfil"
+        class="rounded-circle"
+        style="width: 40px; height: 40px; object-fit: cover;"
+      />
+    } @else {
+      <div
+        class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white fw-bold"
+        style="width: 40px; height: 40px; font-size: 1rem;"
+      >
+        {{ publicacion.usuario.nombre.charAt(0) }}
+      </div>
+    }
+    <div>
+      <div class="fw-semibold" style="font-size: 0.95rem;">
+        {{ publicacion.usuario.nombre }} {{ publicacion.usuario.apellido }}
+      </div>
+      <div class="text-muted" style="font-size: 0.8rem;">
+        {{ publicacion.createdAt | date:'dd/MM/yyyy HH:mm' }}
+      </div>
+    </div>
+
+    <!-- Botón eliminar -->
+    @if (puedeEliminar()) {
+      <button
+        class="btn btn-sm btn-outline-danger ms-auto"
+        (click)="eliminar()"
+      >
+        Eliminar
+      </button>
+    }
+  </div>
+
+  <!-- Contenido -->
+  <div class="card-body">
+    <h6 class="card-title fw-bold">{{ publicacion.titulo }}</h6>
+    <p class="card-text text-muted" style="font-size: 0.95rem;">
+      {{ publicacion.descripcion }}
+    </p>
+
+    <!-- Imagen si tiene -->
+    @if (publicacion.imagenUrl) {
+      <img
+        [src]="publicacion.imagenUrl"
+        class="img-fluid rounded mb-2"
+        style="max-height: 400px; width: 100%; object-fit: cover;"
+      />
+    }
+  </div>
+
+  <!-- Pie con likes -->
+  <div class="card-footer bg-white d-flex align-items-center gap-3">
+    <button
+      class="btn btn-sm d-flex align-items-center gap-1"
+      [class.btn-primary]="yaLikeo()"
+      [class.btn-outline-primary]="!yaLikeo()"
+      (click)="toggleLike()"
+    >
+      👍 {{ publicacion.likes.length }}
+    </button>
+  </div>
+</div>

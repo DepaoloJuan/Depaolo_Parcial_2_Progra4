@@ -72,14 +72,15 @@ export class PublicacionesService {
       throw new NotFoundException('Publicación no encontrada');
     }
 
-    // solo el creador o un administrador puede eliminar
-    const esCreador = publicacion.usuario.toString() === usuarioId;
+    // después del populate, usuario es un objeto — accedemos a _id
+    const creadorId = (publicacion.usuario as any)._id?.toString()
+      ?? publicacion.usuario.toString();
+
+    const esCreador = creadorId === usuarioId;
     const esAdmin = perfil === 'administrador';
 
     if (!esCreador && !esAdmin) {
-      throw new ForbiddenException(
-        'No tenés permiso para eliminar esta publicación',
-      );
+      throw new ForbiddenException('No tenés permiso para eliminar esta publicación');
     }
 
     await this.publicacionesRepository.bajaLogica(id);

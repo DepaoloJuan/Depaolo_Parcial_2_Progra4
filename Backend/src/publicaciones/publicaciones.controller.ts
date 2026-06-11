@@ -43,8 +43,8 @@ export class PublicacionesController {
   @HttpCode(HttpStatus.OK)
   eliminar(
     @Param('id') id: string,
-    @Body('usuarioId') usuarioId: string,
-    @Body('perfil') perfil: string,
+    @Query('usuarioId') usuarioId: string,
+    @Query('perfil') perfil: string,
   ) {
     return this.publicacionesService.eliminar(id, usuarioId, perfil);
   }

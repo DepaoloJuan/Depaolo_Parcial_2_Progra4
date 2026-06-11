@@ -66,7 +66,7 @@ export class PublicacionesRepository {
 
   async bajaLogica(id: string): Promise<PublicacionDocument | null> {
     return this.modelo
-      .findByIdAndUpdate(id, { activo: false }, { new: true })
+      .findByIdAndUpdate(id, { activo: false }, { returnDocument: 'after' })
       .exec();
   }
 
@@ -78,7 +78,7 @@ export class PublicacionesRepository {
       .findByIdAndUpdate(
         publicacionId,
         { $addToSet: { likes: usuarioId } },
-        { new: true },
+        { returnDocument: 'after' },
       )
       .exec();
   }
@@ -91,7 +91,7 @@ export class PublicacionesRepository {
       .findByIdAndUpdate(
         publicacionId,
         { $pull: { likes: usuarioId } },
-        { new: true },
+        { returnDocument: 'after' },
       )
       .exec();
   }

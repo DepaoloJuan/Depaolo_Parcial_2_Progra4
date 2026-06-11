@@ -1,0 +1,53 @@
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { Publicacion, RespuestaPublicaciones } from '../models/publicacion.model';
+import { environment } from '../../environments/environment';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class PublicacionesService {
+  private http = inject(HttpClient);
+  private apiUrl = `${environment.apiUrl}/publicaciones`;
+
+  listar(
+    offset: number = 0,
+    limit: number = 10,
+    ordenarPor: 'fecha' | 'likes' = 'fecha',
+    usuarioId?: string,
+  ): Observable<RespuestaPublicaciones> {
+    let params = new HttpParams()
+      .set('offset', offset)
+      .set('limit', limit)
+      .set('ordenarPor', ordenarPor);
+
+    if (usuarioId) {
+      params = params.set('usuarioId', usuarioId);
+    }
+
+    return this.http.get<RespuestaPublicaciones>(this.apiUrl, { params });
+  }
+
+  crear(formData: FormData): Observable<Publicacion> {
+    return this.http.post<Publicacion>(this.apiUrl, formData);
+  }
+
+  eliminar(id: string, usuarioId: string, perfil: string): Observable<{ mensaje: string }> {
+    return this.http.delete<{ mensaje: string }>(
+      `${this.apiUrl}/${id}?usuarioId=${usuarioId}&perfil=${perfil}`,
+    );
+  }
+
+  darLike(publicacionId: string, usuarioId: string): Observable<{ mensaje: string }> {
+    return this.http.post<{ mensaje: string }>(`${this.apiUrl}/${publicacionId}/likes`, {
+      usuarioId,
+    });
+  }
+
+  quitarLike(publicacionId: string, usuarioId: string): Observable<{ mensaje: string }> {
+    return this.http.delete<{ mensaje: string }>(`${this.apiUrl}/${publicacionId}/likes`, {
+      body: { usuarioId },
+    });
+  }
+}
