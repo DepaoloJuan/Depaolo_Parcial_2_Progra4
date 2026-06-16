@@ -1,8 +1,138 @@
 <app-navbar />
 
-<div class="container mt-4">
-  <h3 class="mb-4">Publicaciones</h3>
-  <div class="alert alert-info">
-    Proximamente si llego al sprint 2
+<div class="container mt-4" style="max-width: 680px;">
+
+  <!-- Selector de ordenamiento -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0 fw-bold">Publicaciones</h5>
+    <div class="btn-group">
+      <button
+        class="btn btn-sm"
+        [class.btn-primary]="ordenarPor() === 'fecha'"
+        [class.btn-outline-primary]="ordenarPor() !== 'fecha'"
+        (click)="cambiarOrden('fecha')"
+      >
+        Más recientes
+      </button>
+      <button
+        class="btn btn-sm"
+        [class.btn-primary]="ordenarPor() === 'likes'"
+        [class.btn-outline-primary]="ordenarPor() !== 'likes'"
+        (click)="cambiarOrden('likes')"
+      >
+        Más populares
+      </button>
+    </div>
   </div>
+
+  <!-- Botón crear publicación -->
+  @if (usuarioActual()) {
+    <div class="card mb-3 shadow-sm">
+      <div class="card-body">
+        @if (!mostrarFormulario()) {
+          <button
+            class="btn btn-light w-100 text-start text-muted"
+            (click)="mostrarFormulario.set(true)"
+          >
+            ¿Qué estás pensando, {{ usuarioActual()?.nombre }}?
+          </button>
+        } @else {
+          <form [formGroup]="formulario" (ngSubmit)="onCrearPublicacion()">
+            <div class="mb-2">
+              <input
+                type="text"
+                class="form-control"
+                [class.is-invalid]="campoInvalido('titulo')"
+                formControlName="titulo"
+                placeholder="Título"
+              />
+              @if (campoInvalido('titulo')) {
+                <div class="invalid-feedback">El título es obligatorio</div>
+              }
+            </div>
+            <div class="mb-2">
+              <textarea
+                class="form-control"
+                [class.is-invalid]="campoInvalido('descripcion')"
+                formControlName="descripcion"
+                placeholder="¿Qué estás pensando?"
+                rows="3"
+              ></textarea>
+              @if (campoInvalido('descripcion')) {
+                <div class="invalid-feedback">La descripción es obligatoria</div>
+              }
+            </div>
+            <div class="mb-2">
+              <input
+                type="file"
+                class="form-control"
+                accept="image/jpeg,image/png,image/webp"
+                (change)="onImagenSeleccionada($event)"
+              />
+            </div>
+            @if (errorCrear()) {
+              <div class="alert alert-danger py-2">{{ errorCrear() }}</div>
+            }
+            <div class="d-flex gap-2">
+              <button
+                type="submit"
+                class="btn btn-primary"
+                [disabled]="formulario.invalid || creando()"
+              >
+                @if (creando()) {
+                  <span class="spinner-border spinner-border-sm me-1"></span>
+                }
+                Publicar
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                (click)="mostrarFormulario.set(false)"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Lista de publicaciones -->
+  @if (cargando() && publicaciones().length === 0) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary"></div>
+    </div>
+  }
+
+  @for (publicacion of publicaciones(); track publicacion.id) {
+    <app-tarjeta-publicacion
+      [publicacion]="publicacion"
+      (publicacionEliminada)="onPublicacionEliminada($event)"
+      (likeActualizado)="onLikeActualizado($event)"
+    />
+  }
+
+  @if (publicaciones().length === 0 && !cargando()) {
+    <div class="text-center text-muted py-4">
+      No hay publicaciones todavía.
+    </div>
+  }
+
+  <!-- Botón cargar más -->
+  @if (hayMas()) {
+    <div class="text-center mb-4">
+      <button
+        class="btn btn-outline-primary"
+        (click)="cargarMas()"
+        [disabled]="cargando()"
+      >
+        @if (cargando()) {
+          <span class="spinner-border spinner-border-sm me-1"></span>
+        }
+        Cargar más
+      </button>
+    </div>
+  }
+
 </div>

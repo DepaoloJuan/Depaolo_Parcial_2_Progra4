@@ -46,6 +46,17 @@ export class AuthService {
       );
   }
 
+  actualizarPerfil(id: string, datos: FormData): Observable<Usuario> {
+    return this.http
+      .put<Usuario>(`${environment.apiUrl}/usuarios/${id}`, datos)
+      .pipe(
+        tap((usuario) => {
+          localStorage.setItem(this.USUARIO_KEY, JSON.stringify(usuario));
+          this._usuarioActual.set(usuario);
+        }),
+      );
+  }
+
   logout(): void {
     localStorage.removeItem(this.USUARIO_KEY);
     this._usuarioActual.set(null);
