@@ -37,4 +37,13 @@ export class UsuariosRepository {
   async buscarPorId(id: string): Promise<UsuarioDocument | null> {
     return this.modelo.findById(id).exec();
   }
+
+  async actualizar(
+    id: string,
+    datos: Partial<{ nombre: string; apellido: string; descripcion: string; fechaNacimiento: string; fotoPerfil: string }>,
+  ): Promise<UsuarioDocument | null> {
+    return this.modelo
+      .findByIdAndUpdate(id, datos, { returnDocument: 'after' })
+      .exec();
+  }
 }

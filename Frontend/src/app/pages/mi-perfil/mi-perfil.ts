@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Navbar } from '../../components/navbar/navbar';
 import { TarjetaPublicacion } from '../../components/tarjeta-publicacion/tarjeta-publicacion';
 import { AuthService } from '../../services/auth.service';
@@ -8,23 +9,42 @@ import { Publicacion } from '../../models/publicacion.model';
 
 @Component({
   selector: 'app-mi-perfil',
-  imports: [Navbar, TarjetaPublicacion, DatePipe],
+  imports: [Navbar, TarjetaPublicacion, DatePipe, ReactiveFormsModule],
   templateUrl: './mi-perfil.html',
   styleUrl: './mi-perfil.css',
 })
 export class MiPerfil implements OnInit {
   private authService = inject(AuthService);
   private publicacionesService = inject(PublicacionesService);
+  private fb = inject(FormBuilder);
 
   usuarioActual = this.authService.usuarioActual;
   publicaciones = signal<Publicacion[]>([]);
   cargando = signal(false);
+  guardando = signal(false);
+  errorEditar = signal<string | null>(null);
+  exitoEditar = signal(false);
+  imagenSeleccionada = signal<File | null>(null);
+  previsualizacion = signal<string | null>(null);
+
+  formularioEditar: FormGroup = this.buildForm();
 
   ngOnInit(): void {
     const usuario = this.usuarioActual();
     if (usuario) {
       this.cargarPublicaciones(usuario.id);
+      this.formularioEditar = this.buildForm();
     }
+  }
+
+  private buildForm(): FormGroup {
+    const usuario = this.usuarioActual();
+    return this.fb.group({
+      nombre: [usuario?.nombre ?? ''],
+      apellido: [usuario?.apellido ?? ''],
+      descripcion: [usuario?.descripcion ?? ''],
+      fechaNacimiento: [usuario?.fechaNacimiento?.substring(0, 10) ?? ''],
+    });
   }
 
   private cargarPublicaciones(usuarioId: string): void {
@@ -35,6 +55,55 @@ export class MiPerfil implements OnInit {
         this.cargando.set(false);
       },
       error: () => this.cargando.set(false),
+    });
+  }
+
+  onImagenSeleccionada(evento: Event): void {
+    const input = evento.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    const archivo = input.files[0];
+    this.imagenSeleccionada.set(archivo);
+    const reader = new FileReader();
+    reader.onload = (e) => this.previsualizacion.set(e.target?.result as string);
+    reader.readAsDataURL(archivo);
+  }
+
+  onGuardarPerfil(): void {
+    const usuario = this.usuarioActual();
+    if (!usuario) return;
+
+    this.guardando.set(true);
+    this.errorEditar.set(null);
+
+    const formData = new FormData();
+    const valores = this.formularioEditar.value;
+    if (valores.nombre) formData.append('nombre', valores.nombre);
+    if (valores.apellido) formData.append('apellido', valores.apellido);
+    if (valores.descripcion) formData.append('descripcion', valores.descripcion);
+    if (valores.fechaNacimiento) formData.append('fechaNacimiento', valores.fechaNacimiento);
+    if (this.imagenSeleccionada()) {
+      formData.append('fotoPerfil', this.imagenSeleccionada()!);
+    }
+
+    this.authService.actualizarPerfil(usuario.id, formData).subscribe({
+      next: () => {
+        this.guardando.set(false);
+        this.imagenSeleccionada.set(null);
+        this.previsualizacion.set(null);
+        this.exitoEditar.set(true);
+        setTimeout(() => {
+          this.exitoEditar.set(false);
+          const modal = document.getElementById('modalEditarPerfil');
+          if (modal) {
+            const bootstrapModal = (window as any).bootstrap.Modal.getInstance(modal);
+            bootstrapModal?.hide();
+          }
+        }, 2000);
+      },
+      error: (err) => {
+        this.guardando.set(false);
+        this.errorEditar.set(err.error?.message ?? 'Error al guardar');
+      },
     });
   }
 

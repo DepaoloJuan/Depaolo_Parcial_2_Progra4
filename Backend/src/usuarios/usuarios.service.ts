@@ -1,7 +1,8 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { UsuariosRepository } from './usuarios.repository';
 import { CrearUsuarioDto } from './dto/crear-usuario.dto';
+import { ActualizarUsuarioDto } from './dto/actualizar-usuarios.dto';
 
 @Injectable()
 export class UsuariosService {
@@ -44,6 +45,20 @@ export class UsuariosService {
   }
 
   // método privado que elimina la contraseña antes de devolver el usuario
+  async actualizar(
+    id: string,
+    dto: ActualizarUsuarioDto,
+    fotoPerfil?: string,
+  ) {
+    const datos: any = { ...dto };
+    if (fotoPerfil) datos.fotoPerfil = fotoPerfil;
+
+    const usuario = await this.usuariosRepository.actualizar(id, datos);
+    if (!usuario) throw new NotFoundException('Usuario no encontrado');
+
+    return this.sanitizarUsuario(usuario);
+  }
+
   private sanitizarUsuario(usuario: any) {
     const obj = usuario.toObject ? usuario.toObject({ virtuals: true }) : usuario;
     const { contrasenia, _id, __v, ...resto } = obj;

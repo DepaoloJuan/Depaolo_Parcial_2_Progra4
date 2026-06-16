@@ -4,17 +4,17 @@ import { UsuariosController } from './usuarios.controller';
 import { UsuariosService } from './usuarios.service';
 import { UsuariosRepository } from './usuarios.repository';
 import { Usuario, UsuarioSchema } from './schemas/usuario.schema';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
 @Module({
   imports: [
-    // forFeature registra el schema en este módulo específico
     MongooseModule.forFeature([
       { name: Usuario.name, schema: UsuarioSchema },
     ]),
+    CloudinaryModule,
   ],
   controllers: [UsuariosController],
   providers: [UsuariosService, UsuariosRepository],
-  // exportamos el service para que AutenticacionModule pueda usarlo
   exports: [UsuariosService],
 })
 export class UsuariosModule {}
