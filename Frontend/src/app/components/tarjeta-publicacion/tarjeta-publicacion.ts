@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject, computed } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, computed, signal, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Publicacion } from '../../models/publicacion.model';
 import { AuthService } from '../../services/auth.service';
@@ -10,7 +10,7 @@ import { PublicacionesService } from '../../services/publicaciones.service';
   templateUrl: './tarjeta-publicacion.html',
   styleUrl: './tarjeta-publicacion.css',
 })
-export class TarjetaPublicacion {
+export class TarjetaPublicacion implements OnInit {
   @Input() publicacion!: Publicacion;
   @Output() publicacionEliminada = new EventEmitter<string>();
   @Output() likeActualizado = new EventEmitter<string>();
@@ -20,18 +20,26 @@ export class TarjetaPublicacion {
 
   usuarioActual = this.authService.usuarioActual;
 
-  // computed: el usuario actual ya dio like a esta publicación?
+  likes = signal<string[]>([]);
+  mostrarTodosComentarios = signal(false);
+
+  ngOnInit(): void {
+    this.likes.set(this.publicacion.likes);
+  }
+
   yaLikeo = computed(() => {
     const usuario = this.usuarioActual();
     if (!usuario) return false;
-    return this.publicacion.likes.includes(usuario.id);
+    return this.likes().includes(usuario.id);
   });
 
-  // computed: el usuario actual puede eliminar esta publicación?
   puedeEliminar = computed(() => {
     const usuario = this.usuarioActual();
     if (!usuario) return false;
-    return usuario.id === this.publicacion.usuario.id || usuario.perfil === 'administrador';
+    return (
+      usuario.id === this.publicacion.usuario.id ||
+      usuario.perfil === 'administrador'
+    );
   });
 
   toggleLike(): void {
@@ -43,7 +51,14 @@ export class TarjetaPublicacion {
       : this.publicacionesService.darLike(this.publicacion.id, usuario.id);
 
     accion.subscribe({
-      next: () => this.likeActualizado.emit(this.publicacion.id),
+      next: () => {
+        if (this.yaLikeo()) {
+          this.likes.update(prev => prev.filter(id => id !== usuario.id));
+        } else {
+          this.likes.update(prev => [...prev, usuario.id]);
+        }
+        this.likeActualizado.emit(this.publicacion.id);
+      },
       error: (err) => console.error(err),
     });
   }
@@ -52,9 +67,11 @@ export class TarjetaPublicacion {
     const usuario = this.usuarioActual();
     if (!usuario) return;
 
-    this.publicacionesService.eliminar(this.publicacion.id, usuario.id, usuario.perfil).subscribe({
-      next: () => this.publicacionEliminada.emit(this.publicacion.id),
-      error: (err) => console.error(err),
-    });
+    this.publicacionesService
+      .eliminar(this.publicacion.id, usuario.id, usuario.perfil)
+      .subscribe({
+        next: () => this.publicacionEliminada.emit(this.publicacion.id),
+        error: (err) => console.error(err),
+      });
   }
 }

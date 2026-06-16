@@ -117,9 +117,8 @@ export class Publicaciones implements OnInit {
     this.total.update((v) => v - 1);
   }
 
-  onLikeActualizado(id: string): void {
-    // recargamos solo la publicación actualizada
-    this.cargarPublicaciones();
+  onLikeActualizado(_id: string): void {
+    // no recargamos — el componente tarjeta ya actualizó su estado local
   }
 
   campoInvalido(campo: string): boolean {
