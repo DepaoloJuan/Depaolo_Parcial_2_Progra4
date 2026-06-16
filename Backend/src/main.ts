@@ -8,7 +8,7 @@ async function bootstrap() {
   // prefijo global para todas las rutas: /api/v1/...
   app.setGlobalPrefix('api/v1');
 
-  // pipe global de validación — igual al que usa el docente
+  // pipe global de validación
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,              // elimina campos no declarados en el DTO
