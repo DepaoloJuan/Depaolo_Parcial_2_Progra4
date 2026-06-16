@@ -7,6 +7,7 @@ import {
   IsDateString,
   IsOptional,
   Matches,
+  IsIn,
 } from 'class-validator';
 
 export class CrearUsuarioDto {
@@ -48,4 +49,9 @@ export class CrearUsuarioDto {
   @IsString()
   @MaxLength(200)
   descripcion?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['usuario', 'administrador'])
+  perfil?: string;
 }
