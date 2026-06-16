@@ -55,6 +55,7 @@ export class Registro {
         repetirContrasenia: ['', Validators.required],
         fechaNacimiento: ['', Validators.required],
         descripcion: ['', Validators.maxLength(200)],
+        perfil: ['usuario', Validators.required],
       },
       { validators: contraseniasIguales },
     );
@@ -92,6 +93,7 @@ export class Registro {
     formData.append('contrasenia', valores.contrasenia);
     formData.append('fechaNacimiento', valores.fechaNacimiento);
     formData.append('descripcion', valores.descripcion ?? '');
+    formData.append('perfil', valores.perfil);
 
     if (this.imagenSeleccionada()) {
       formData.append('fotoPerfil', this.imagenSeleccionada()!);
