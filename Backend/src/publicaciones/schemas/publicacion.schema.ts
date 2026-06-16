@@ -18,27 +18,25 @@ export type PublicacionDocument = HydratedDocument<Publicacion>;
 })
 export class Publicacion {
   @Prop({ required: true, trim: true })
-  titulo: string;
+  titulo!: string;
 
   @Prop({ required: true, trim: true })
-  descripcion: string;
+  descripcion!: string;
 
   @Prop({ default: '' })
-  imagenUrl: string;
+  imagenUrl!: string;
 
   @Prop({ default: '' })
-  imagenPublicId: string;
+  imagenPublicId!: string;
 
-  // referencia al usuario que creó la publicación
   @Prop({ type: Types.ObjectId, ref: 'Usuario', required: true })
-  usuario: Types.ObjectId;
+  usuario!: Types.ObjectId;
 
-  // array de IDs de usuarios que dieron like
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Usuario' }], default: [] })
-  likes: Types.ObjectId[];
+  likes!: Types.ObjectId[];
 
   @Prop({ default: true })
-  activo: boolean;
+  activo!: boolean;
 }
 
 export const PublicacionSchema = SchemaFactory.createForClass(Publicacion);

@@ -3,69 +3,127 @@
 <div class="container mt-4" style="max-width: 680px;">
   @if (usuarioActual()) {
 
-    <!-- Datos del perfil -->
-    <div class="card shadow-sm mb-4">
-      <div class="card-body text-center">
+    <!-- Card de perfil estilo moderno -->
+    <div class="card shadow-sm mb-4 overflow-visible" style="border-radius: 16px;">
 
+      <!-- Header con gradiente -->
+      <div class="rounded-top" style="height: 80px; background: linear-gradient(135deg, #1877F2, #42a5f5);"></div>
+
+      <!-- Foto centrada sobresaliendo -->
+      <div class="text-center" style="margin-top: -50px;">
         @if (previsualizacion()) {
-          <img
-            [src]="previsualizacion()"
-            class="rounded-circle mb-3"
-            style="width: 100px; height: 100px; object-fit: cover;"
-          />
+          <img [src]="previsualizacion()" class="rounded-circle border border-4 border-white shadow"
+            style="width: 100px; height: 100px; object-fit: cover;" />
         } @else if (usuarioActual()?.fotoPerfil) {
-          <img
-            [src]="usuarioActual()?.fotoPerfil"
-            class="rounded-circle mb-3"
-            style="width: 100px; height: 100px; object-fit: cover;"
-          />
+          <img [src]="usuarioActual()?.fotoPerfil" class="rounded-circle border border-4 border-white shadow"
+            style="width: 100px; height: 100px; object-fit: cover;" />
         } @else {
-          <div
-            class="rounded-circle bg-primary d-flex align-items-center justify-content-center mx-auto mb-3 text-white fw-bold"
-            style="width: 100px; height: 100px; font-size: 2rem;"
-          >
+          <div class="rounded-circle border border-4 border-white shadow bg-primary d-flex align-items-center justify-content-center mx-auto text-white fw-bold"
+            style="width: 100px; height: 100px; font-size: 2rem;">
             {{ usuarioActual()?.nombre?.charAt(0) }}
           </div>
         }
+      </div>
 
-        <h4 class="fw-bold mb-0">
-          {{ usuarioActual()?.nombre }} {{ usuarioActual()?.apellido }}
-        </h4>
-        <p class="text-muted mb-2">&#64;{{ usuarioActual()?.nombreUsuario }}</p>
-        <span
-          class="badge mb-3"
+      <div class="card-body text-center pt-2">
+        <h4 class="fw-bold mb-0">{{ usuarioActual()?.nombre }} {{ usuarioActual()?.apellido }}</h4>
+        <p class="text-muted mb-1">&#64;{{ usuarioActual()?.nombreUsuario }}</p>
+
+        @if (usuarioActual()?.descripcion) {
+          <p class="text-muted mb-2" style="font-size: 0.9rem;">{{ usuarioActual()?.descripcion }}</p>
+        }
+
+        <span class="badge mb-3"
           [class.bg-danger]="usuarioActual()?.perfil === 'administrador'"
-          [class.bg-secondary]="usuarioActual()?.perfil !== 'administrador'"
-        >
+          [class.bg-secondary]="usuarioActual()?.perfil !== 'administrador'">
           {{ usuarioActual()?.perfil }}
         </span>
 
-        <!-- Botón editar -->
-        <div>
-          <button
-            class="btn btn-outline-primary btn-sm"
-            data-bs-toggle="modal"
-            data-bs-target="#modalEditarPerfil"
-          >
-            ✏️ Editar perfil
-          </button>
+        <!-- Stats -->
+        <div class="row text-center border-top border-bottom py-3 mb-3">
+          <div class="col">
+            <div class="fw-bold fs-5">{{ publicaciones().length }}</div>
+            <div class="text-muted" style="font-size: 0.8rem;">Publicaciones</div>
+          </div>
+          <div class="col border-start border-end">
+            <div class="fw-bold fs-5">{{ usuarioActual()?.correo }}</div>
+            <div class="text-muted" style="font-size: 0.8rem;">Correo</div>
+          </div>
+          <div class="col">
+            <div class="fw-bold fs-5">{{ usuarioActual()?.fechaNacimiento | date:'dd/MM/yyyy' }}</div>
+            <div class="text-muted" style="font-size: 0.8rem;">Nacimiento</div>
+          </div>
         </div>
-      </div>
 
-      <ul class="list-group list-group-flush">
-        <li class="list-group-item">
-          <strong>Correo:</strong> {{ usuarioActual()?.correo }}
-        </li>
-        <li class="list-group-item">
-          <strong>Fecha de nacimiento:</strong>
-          {{ usuarioActual()?.fechaNacimiento | date:'dd/MM/yyyy' }}
-        </li>
-        @if (usuarioActual()?.descripcion) {
-          <li class="list-group-item">
-            <strong>Descripción:</strong> {{ usuarioActual()?.descripcion }}
-          </li>
+        <!-- Botón editar -->
+        <button class="btn btn-primary px-4 rounded-pill"
+          data-bs-toggle="modal" data-bs-target="#modalEditarPerfil">
+          ✏️ Editar perfil
+        </button>
+      </div>
+    </div>
+
+    <!-- Crear publicación -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        @if (!mostrarFormulario()) {
+          <button
+            class="btn btn-light w-100 text-start text-muted rounded-pill"
+            (click)="mostrarFormulario.set(true)"
+          >
+            ¿Qué estás pensando, {{ usuarioActual()?.nombre }}?
+          </button>
+        } @else {
+          <form [formGroup]="formularioPublicacion" (ngSubmit)="onCrearPublicacion()">
+            <div class="mb-2">
+              <input
+                type="text"
+                class="form-control"
+                formControlName="titulo"
+                placeholder="Título"
+              />
+            </div>
+            <div class="mb-2">
+              <textarea
+                class="form-control"
+                formControlName="descripcion"
+                placeholder="¿Qué estás pensando?"
+                rows="3"
+              ></textarea>
+            </div>
+            <div class="mb-2">
+              <input
+                type="file"
+                class="form-control"
+                accept="image/jpeg,image/png,image/webp"
+                (change)="onImagenPublicacionSeleccionada($event)"
+              />
+            </div>
+            @if (errorCrear()) {
+              <div class="alert alert-danger py-2">{{ errorCrear() }}</div>
+            }
+            <div class="d-flex gap-2">
+              <button
+                type="submit"
+                class="btn btn-primary"
+                [disabled]="formularioPublicacion.invalid || creando()"
+              >
+                @if (creando()) {
+                  <span class="spinner-border spinner-border-sm me-1"></span>
+                }
+                Publicar
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                (click)="mostrarFormulario.set(false)"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
         }
-      </ul>
+      </div>
     </div>
 
     <!-- Últimas publicaciones -->

@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Navbar } from '../../components/navbar/navbar';
 import { TarjetaPublicacion } from '../../components/tarjeta-publicacion/tarjeta-publicacion';
 import { AuthService } from '../../services/auth.service';
@@ -28,6 +28,11 @@ export class MiPerfil implements OnInit {
   previsualizacion = signal<string | null>(null);
 
   formularioEditar: FormGroup = this.buildForm();
+  mostrarFormulario = signal(false);
+  formularioPublicacion: FormGroup = this.buildFormPublicacion();
+  imagenPublicacion = signal<File | null>(null);
+  creando = signal(false);
+  errorCrear = signal<string | null>(null);
 
   ngOnInit(): void {
     const usuario = this.usuarioActual();
@@ -103,6 +108,51 @@ export class MiPerfil implements OnInit {
       error: (err) => {
         this.guardando.set(false);
         this.errorEditar.set(err.error?.message ?? 'Error al guardar');
+      },
+    });
+  }
+
+  private buildFormPublicacion(): FormGroup {
+    return this.fb.group({
+      titulo: ['', [Validators.required, Validators.maxLength(100)]],
+      descripcion: ['', [Validators.required, Validators.maxLength(500)]],
+    });
+  }
+
+  onImagenPublicacionSeleccionada(evento: Event): void {
+    const input = evento.target as HTMLInputElement;
+    if (input.files?.length) {
+      this.imagenPublicacion.set(input.files[0]);
+    }
+  }
+
+  onCrearPublicacion(): void {
+    if (this.formularioPublicacion.invalid) return;
+    const usuario = this.usuarioActual();
+    if (!usuario) return;
+
+    this.creando.set(true);
+    this.errorCrear.set(null);
+
+    const formData = new FormData();
+    formData.append('titulo', this.formularioPublicacion.value.titulo);
+    formData.append('descripcion', this.formularioPublicacion.value.descripcion);
+    formData.append('usuarioId', usuario.id);
+    if (this.imagenPublicacion()) {
+      formData.append('imagen', this.imagenPublicacion()!);
+    }
+
+    this.publicacionesService.crear(formData).subscribe({
+      next: () => {
+        this.creando.set(false);
+        this.formularioPublicacion.reset();
+        this.imagenPublicacion.set(null);
+        this.mostrarFormulario.set(false);
+        this.cargarPublicaciones(usuario.id);
+      },
+      error: (err) => {
+        this.creando.set(false);
+        this.errorCrear.set(err.error?.message ?? 'Error al publicar');
       },
     });
   }
