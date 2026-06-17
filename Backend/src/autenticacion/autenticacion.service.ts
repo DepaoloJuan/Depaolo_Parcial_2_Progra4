@@ -39,6 +39,10 @@ export class AutenticacionService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
+    if (!usuarioCrudo.activo) {
+      throw new UnauthorizedException('Tu cuenta está deshabilitada. Contactá al administrador.');
+    }
+
     const token = this.generarToken(
       usuarioCrudo._id.toString(),
       usuarioCrudo.nombreUsuario,
