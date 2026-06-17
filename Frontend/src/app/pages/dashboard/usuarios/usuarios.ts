@@ -3,11 +3,13 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Navbar } from '../../../components/navbar/navbar';
 import { UsuariosService } from '../../../services/usuarios.service';
 import { Usuario } from '../../../models/usuario.model';
+import { ResaltarDirective } from '../../../directives/resaltar.directive';
+import { AutoFocusDirective } from '../../../directives/auto-focus.directive';
 
 @Component({
   selector: 'app-usuarios',
   standalone: true,
-  imports: [Navbar, ReactiveFormsModule],
+  imports: [Navbar, ReactiveFormsModule, ResaltarDirective, AutoFocusDirective],
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.css',
 })

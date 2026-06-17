@@ -22,7 +22,7 @@
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label">Nombre</label>
-              <input formControlName="nombre" type="text" class="form-control"
+              <input formControlName="nombre" type="text" class="form-control" appAutoFocus
                 [class.is-invalid]="campoInvalido('nombre')">
               @if (campoInvalido('nombre')) {
                 <div class="invalid-feedback">Requerido</div>
@@ -126,7 +126,7 @@
           </thead>
           <tbody>
             @for (usuario of usuarios(); track usuario.id) {
-              <tr>
+              <tr appResaltar>
                 <td>
                   <div class="d-flex align-items-center gap-2">
                     @if (usuario.fotoPerfil) {
