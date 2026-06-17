@@ -1,21 +1,20 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { APP_GUARD } from '@nestjs/core';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { AutenticacionModule } from './autenticacion/autenticacion.module';
 import { PublicacionesModule } from './publicaciones/publicaciones.module';
 import { ComentariosModule } from './comentarios/comentarios.module';
+import { JwtAuthGuard } from './autenticacion/guards/jwt-auth.guard';
+import { RolesGuard } from './autenticacion/guards/roles.guard';
 
 @Module({
   imports: [
-    // ConfigModule lee el .env y lo hace disponible en toda la app
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
     }),
-
-    // MongooseModule conecta a MongoDB Atlas
-    // forRootAsync espera a que ConfigModule esté listo antes de conectar
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -32,16 +31,23 @@ import { ComentariosModule } from './comentarios/comentarios.module';
       }),
       inject: [ConfigService],
     }),
-
     UsuariosModule,
-
     AutenticacionModule,
-
     PublicacionesModule,
-
     ComentariosModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    // Registramos los guards globalmente — se aplican a TODAS las rutas
+    // El orden importa: primero JWT, después Roles
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+  ],
 })
 export class AppModule {}

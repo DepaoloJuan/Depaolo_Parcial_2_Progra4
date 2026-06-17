@@ -23,7 +23,7 @@
             </div>
           }
           <div>
-            <div class="fw-semibold">{{ publicacion()!.usuario.nombre }} {{ publicacion()!.usuario.apellido }}</div>
+            <div class="fw-semibold">{{ publicacion()!.usuario.nombre | primeraMayuscula }} {{ publicacion()!.usuario.apellido | primeraMayuscula }}</div>
             <small class="text-muted">{{ publicacion()!.createdAt | date:'dd/MM/yyyy HH:mm' }}</small>
           </div>
         </div>
