@@ -37,7 +37,7 @@
             ¿Qué estás pensando, {{ usuarioActual()?.nombre }}?
           </button>
         } @else {
-          <form [formGroup]="formulario" (ngSubmit)="onCrearPublicacion()">
+          <form [formGroup]="formulario" (ngSubmit)="onCrearPublicacion()" appClickFuera (appClickFuera)="mostrarFormulario.set(false)">
             <div class="mb-2">
               <input
                 type="text"

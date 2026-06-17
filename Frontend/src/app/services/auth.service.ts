@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
@@ -112,9 +112,7 @@ export class AuthService {
     return this._usuarioActual() !== null;
   }
 
-  esAdmin(): boolean {
-    return this._usuarioActual()?.perfil === 'administrador';
-  }
+  esAdmin = computed(() => this._usuarioActual()?.perfil === 'administrador');
 
   // Centraliza el guardado de sesión — un solo lugar para token + usuario
   private guardarSesion(token: string, usuario: Usuario): void {

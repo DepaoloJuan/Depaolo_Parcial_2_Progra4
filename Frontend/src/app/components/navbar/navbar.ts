@@ -13,6 +13,7 @@ export class Navbar {
 
   // exponemos la señal del usuario para el template
   usuarioActual = this.authService.usuarioActual;
+  esAdmin = this.authService.esAdmin;
 
   logout(): void {
     this.authService.logout();

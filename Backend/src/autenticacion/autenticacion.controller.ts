@@ -11,12 +11,14 @@ import { AutenticacionService } from './autenticacion.service';
 import { CrearUsuarioDto } from '../usuarios/dto/crear-usuario.dto';
 import { LoginDto } from './dto/login.dto';
 import { multerConfig } from '../cloudinary/multer.config';
+import { Publica } from './decorators/public.decorator';
 
 @Controller('autenticacion')
 export class AutenticacionController {
   constructor(private readonly autenticacionService: AutenticacionService) {}
 
   // REGISTRO — recibe los datos del usuario + foto de perfil opcional
+  @Publica()
   @Post('registro')
   @UseInterceptors(FileInterceptor('fotoPerfil', multerConfig))
   async registrar(
@@ -27,6 +29,7 @@ export class AutenticacionController {
   }
 
   // LOGIN — recibe identificador (correo o nombreUsuario) + contraseña
+  @Publica()
   @Post('login')
   async login(@Body() dto: LoginDto) {
     return this.autenticacionService.login(dto);
@@ -34,6 +37,7 @@ export class AutenticacionController {
 
   // AUTORIZAR — el frontend manda el token, nosotros lo validamos
   // Si es válido devolvemos los datos del usuario, si no → 401
+  @Publica()
   @Post('autorizar')
   async autorizar(@Body('token') token: string) {
     if (!token) {
@@ -43,6 +47,7 @@ export class AutenticacionController {
   }
 
   // REFRESCAR — el frontend manda el token actual, nosotros devolvemos uno nuevo
+  @Publica()
   @Post('refrescar')
   async refrescar(@Body('token') token: string) {
     if (!token) {

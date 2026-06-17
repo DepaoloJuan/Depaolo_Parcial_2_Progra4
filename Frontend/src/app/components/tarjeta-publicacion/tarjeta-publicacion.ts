@@ -1,13 +1,14 @@
 import { Component, Input, Output, EventEmitter, inject, computed, signal, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { Publicacion } from '../../models/publicacion.model';
 import { AuthService } from '../../services/auth.service';
 import { PublicacionesService } from '../../services/publicaciones.service';
+import { FechaRelativaPipe } from '../../pipes/fecha.pipe';
+import { TruncarPipe } from '../../pipes/truncar.pipe';
 
 @Component({
   selector: 'app-tarjeta-publicacion',
-  imports: [DatePipe],
+  imports: [FechaRelativaPipe, TruncarPipe],
   templateUrl: './tarjeta-publicacion.html',
   styleUrl: './tarjeta-publicacion.css',
 })

@@ -5,10 +5,11 @@ import { TarjetaPublicacion } from '../../components/tarjeta-publicacion/tarjeta
 import { PublicacionesService } from '../../services/publicaciones.service';
 import { AuthService } from '../../services/auth.service';
 import { Publicacion } from '../../models/publicacion.model';
+import { ClickFueraDirective } from '../../directives/click-fuera.directive';
 
 @Component({
   selector: 'app-publicaciones',
-  imports: [Navbar, TarjetaPublicacion, ReactiveFormsModule],
+  imports: [Navbar, TarjetaPublicacion, ReactiveFormsModule, ClickFueraDirective],
   templateUrl: './publicaciones.html',
   styleUrl: './publicaciones.css',
 })
