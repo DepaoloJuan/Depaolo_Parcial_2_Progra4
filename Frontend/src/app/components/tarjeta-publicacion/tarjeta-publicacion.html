@@ -20,7 +20,7 @@
         {{ publicacion.usuario.nombre }} {{ publicacion.usuario.apellido }}
       </div>
       <div class="text-muted" style="font-size: 0.8rem;">
-        {{ publicacion.createdAt | date:'dd/MM/yyyy HH:mm' }}
+        {{ publicacion.createdAt | fechaRelativa }}
       </div>
     </div>
 
@@ -46,7 +46,7 @@
       {{ publicacion.titulo }}
     </h6>
     <p class="card-text text-muted" style="font-size: 0.95rem;">
-      {{ publicacion.descripcion }}
+      {{ publicacion.descripcion | truncar:150 }}
     </p>
     <!-- Imagen clickeable si tiene -->
     @if (publicacion.imagenUrl) {
