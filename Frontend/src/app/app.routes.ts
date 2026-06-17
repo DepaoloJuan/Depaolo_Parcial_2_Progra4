@@ -22,6 +22,13 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/mi-perfil/mi-perfil').then((m) => m.MiPerfil),
   },
   {
+    path: 'publicacion/:id',
+    loadComponent: () =>
+      import('./pages/detalle-publicacion/detalle-publicacion').then(
+        (m) => m.DetallePublicacion
+      ),
+  },
+  {
     path: '**',
     redirectTo: '',
   },

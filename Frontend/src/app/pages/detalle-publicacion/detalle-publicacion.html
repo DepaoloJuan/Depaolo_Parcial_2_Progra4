@@ -1,0 +1,136 @@
+<app-navbar />
+
+<div class="container py-4" style="max-width: 680px;">
+
+  <!-- Botón volver -->
+  <button class="btn btn-link text-decoration-none ps-0 mb-3" (click)="volver()">
+    ← Volver a publicaciones
+  </button>
+
+  <!-- Publicación -->
+  @if (publicacion()) {
+    <div class="card mb-4 shadow-sm">
+      @if (publicacion()!.imagenUrl) {
+        <img [src]="publicacion()!.imagenUrl" class="card-img-top" style="max-height: 400px; object-fit: cover;">
+      }
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-3">
+          @if (publicacion()!.usuario.fotoPerfil) {
+            <img [src]="publicacion()!.usuario.fotoPerfil" class="rounded-circle me-2" width="40" height="40" style="object-fit: cover;">
+          } @else {
+            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2 fw-bold" style="width:40px;height:40px;">
+              {{ publicacion()!.usuario.nombre[0] }}
+            </div>
+          }
+          <div>
+            <div class="fw-semibold">{{ publicacion()!.usuario.nombre }} {{ publicacion()!.usuario.apellido }}</div>
+            <small class="text-muted">{{ publicacion()!.createdAt | date:'dd/MM/yyyy HH:mm' }}</small>
+          </div>
+        </div>
+        <h5 class="fw-bold">{{ publicacion()!.titulo }}</h5>
+        <p class="text-muted">{{ publicacion()!.descripcion }}</p>
+        <!-- Botón like -->
+        <button
+          class="btn btn-sm"
+          [class.btn-primary]="yaLikeo()"
+          [class.btn-outline-primary]="!yaLikeo()"
+          (click)="toggleLike()"
+        >
+          👍 {{ cantidadLikes() }} me gusta
+        </button>
+      </div>
+    </div>
+  } @else {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary"></div>
+    </div>
+  }
+
+  <!-- Formulario nuevo comentario -->
+  @if (usuarioActual()) {
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        <h6 class="mb-3">Escribir un comentario</h6>
+        <form [formGroup]="formulario" (ngSubmit)="enviarComentario()">
+          <textarea
+            formControlName="mensaje"
+            class="form-control mb-2"
+            rows="3"
+            placeholder="¿Qué pensás?"
+            [class.is-invalid]="formulario.get('mensaje')?.invalid && formulario.get('mensaje')?.touched">
+          </textarea>
+          @if (formulario.get('mensaje')?.invalid && formulario.get('mensaje')?.touched) {
+            <div class="invalid-feedback d-block mb-2">El comentario no puede estar vacío</div>
+          }
+          <button type="submit" class="btn btn-primary btn-sm" [disabled]="enviando()">
+            {{ enviando() ? 'Enviando...' : 'Comentar' }}
+          </button>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Comentarios -->
+  <h6 class="mb-3 fw-bold">{{ total() }} comentario{{ total() !== 1 ? 's' : '' }}</h6>
+
+  @for (comentario of comentarios(); track comentario._id) {
+    <div class="card mb-2 shadow-sm">
+      <div class="card-body py-3">
+
+        <!-- Vista normal -->
+        @if (comentarioEditandoId() !== comentario._id) {
+          <div class="d-flex gap-2">
+            <!-- Avatar -->
+            @if (comentario.usuarioId.fotoPerfil) {
+              <img [src]="comentario.usuarioId.fotoPerfil" class="rounded-circle flex-shrink-0" width="36" height="36" style="object-fit:cover;">
+            } @else {
+              <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width:36px;height:36px;font-size:0.85rem;">
+                {{ comentario.usuarioId.nombreUsuario[0].toUpperCase() }}
+              </div>
+            }
+            <div class="flex-grow-1">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <span class="fw-semibold me-2" style="font-size:0.9rem;">{{ comentario.usuarioId.nombreUsuario }}</span>
+                  @if (comentario.modificado) {
+                    <small class="text-muted">(editado)</small>
+                  }
+                </div>
+                @if (esMiComentario(comentario)) {
+                  <button class="btn btn-link btn-sm text-secondary p-0 text-decoration-none" style="font-size:0.85rem;" (click)="iniciarEdicion(comentario)">
+                    ✏️ Editar
+                  </button>
+                }
+              </div>
+              <p class="mb-1 mt-1" style="font-size:0.95rem;">{{ comentario.mensaje }}</p>
+              <small class="text-muted">{{ comentario.createdAt | date:'dd/MM/yyyy HH:mm' }}</small>
+            </div>
+          </div>
+        }
+
+        <!-- Vista edición -->
+        @if (comentarioEditandoId() === comentario._id) {
+          <form [formGroup]="formularioEdicion" (ngSubmit)="guardarEdicion(comentario._id)">
+            <textarea formControlName="mensaje" class="form-control mb-2" rows="2"></textarea>
+            <button type="submit" class="btn btn-primary btn-sm me-2">Guardar</button>
+            <button type="button" class="btn btn-secondary btn-sm" (click)="cancelarEdicion()">Cancelar</button>
+          </form>
+        }
+
+      </div>
+    </div>
+  }
+
+  @if (hayMas()) {
+    <div class="text-center mt-3">
+      <button class="btn btn-outline-primary" (click)="cargarMas()" [disabled]="cargando()">
+        {{ cargando() ? 'Cargando...' : 'Cargar más comentarios' }}
+      </button>
+    </div>
+  }
+
+  @if (!cargando() && comentarios().length === 0) {
+    <p class="text-muted text-center mt-3">Todavía no hay comentarios. ¡Sé el primero!</p>
+  }
+
+</div>

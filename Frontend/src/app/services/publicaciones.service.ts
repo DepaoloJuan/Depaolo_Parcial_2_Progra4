@@ -50,4 +50,8 @@ export class PublicacionesService {
       body: { usuarioId },
     });
   }
+
+  obtenerPorId(id: string): Observable<Publicacion> {
+    return this.http.get<Publicacion>(`${this.apiUrl}/${id}`);
+  }
 }

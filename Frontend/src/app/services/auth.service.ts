@@ -73,9 +73,32 @@ export class AuthService {
     });
   }
 
+  // --- Contador de sesión ---
+  private contadorTimer: any = null;
+
+  iniciarContador(): void {
+    this.detenerContador();
+
+    this.contadorTimer = setTimeout(() => {
+      this.mostrarModalSesion();
+    }, 10 * 60 * 1000); // 10 minutos
+  }
+
+  detenerContador(): void {
+    if (this.contadorTimer) {
+      clearTimeout(this.contadorTimer);
+      this.contadorTimer = null;
+    }
+  }
+
+  private mostrarModalSesion(): void {
+    window.dispatchEvent(new CustomEvent('sesion-por-vencer'));
+  }
+
   logout(): void {
+    this.detenerContador();
     localStorage.removeItem(this.USUARIO_KEY);
-    localStorage.removeItem(this.TOKEN_KEY); // ← nuevo
+    localStorage.removeItem(this.TOKEN_KEY);
     this._usuarioActual.set(null);
     this.router.navigate(['/login']);
   }

@@ -38,6 +38,12 @@ export class PublicacionesController {
     return this.publicacionesService.listar(query);
   }
 
+  // GET /api/v1/publicaciones/:id
+  @Get(':id')
+  obtenerPorId(@Param('id') id: string) {
+    return this.publicacionesService.obtenerPorId(id);
+  }
+
   // DELETE /api/v1/publicaciones/:id
   @Delete(':id')
   @HttpCode(HttpStatus.OK)

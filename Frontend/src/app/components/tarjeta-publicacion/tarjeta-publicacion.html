@@ -41,8 +41,7 @@
     <h6
       class="card-title fw-bold"
       style="cursor: pointer;"
-      data-bs-toggle="modal"
-      [attr.data-bs-target]="'#modalDetalle' + publicacion.id"
+      (click)="verDetalle()"
     >
       {{ publicacion.titulo }}
     </h6>
@@ -55,8 +54,7 @@
         [src]="publicacion.imagenUrl"
         class="img-fluid rounded mb-2"
         style="max-height: 400px; width: 100%; object-fit: cover; cursor: pointer;"
-        data-bs-toggle="modal"
-        [attr.data-bs-target]="'#modalDetalle' + publicacion.id"
+        (click)="verDetalle()"
       />
     }
   </div>
@@ -74,10 +72,9 @@
 
     <button
       class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
-      data-bs-toggle="modal"
-      [attr.data-bs-target]="'#modalDetalle' + publicacion.id"
+      (click)="verDetalle()"
     >
-      💬 4 comentarios
+      💬 comentarios
     </button>
   </div>
 </div>
@@ -109,122 +106,6 @@
         >
           Eliminar
         </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal detalle publicación -->
-<div
-  class="modal fade"
-  [id]="'modalDetalle' + publicacion.id"
-  tabindex="-1"
->
-  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div class="d-flex align-items-center gap-2">
-          @if (publicacion.usuario.fotoPerfil) {
-            <img
-              [src]="publicacion.usuario.fotoPerfil"
-              class="rounded-circle"
-              style="width: 36px; height: 36px; object-fit: cover;"
-            />
-          } @else {
-            <div
-              class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white fw-bold"
-              style="width: 36px; height: 36px; font-size: 0.9rem;"
-            >
-              {{ publicacion.usuario.nombre.charAt(0) }}
-            </div>
-          }
-          <div>
-            <div class="fw-semibold" style="font-size: 0.9rem;">
-              {{ publicacion.usuario.nombre }} {{ publicacion.usuario.apellido }}
-            </div>
-            <div class="text-muted" style="font-size: 0.75rem;">
-              {{ publicacion.createdAt | date:'dd/MM/yyyy HH:mm' }}
-            </div>
-          </div>
-        </div>
-        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
-      </div>
-
-      <div class="modal-body">
-        <h5 class="fw-bold">{{ publicacion.titulo }}</h5>
-        <p class="text-muted">{{ publicacion.descripcion }}</p>
-
-        @if (publicacion.imagenUrl) {
-          <img
-            [src]="publicacion.imagenUrl"
-            class="img-fluid rounded mb-3"
-            style="width: 100%; max-height: 400px; object-fit: cover;"
-          />
-        }
-
-        <div class="d-flex align-items-center gap-2 mb-3 pb-3 border-bottom">
-          <button
-            class="btn btn-sm"
-            [class.btn-primary]="yaLikeo()"
-            [class.btn-outline-primary]="!yaLikeo()"
-            (click)="toggleLike()"
-          >
-            👍 {{ likes().length }}
-          </button>
-        </div>
-
-        <h6 class="fw-bold mb-3">Comentarios</h6>
-
-        <div class="d-flex gap-2 mb-3">
-          <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
-            style="width: 36px; height: 36px; font-size: 0.85rem;">M</div>
-          <div class="bg-light rounded p-2 flex-grow-1">
-            <div class="fw-semibold" style="font-size: 0.85rem;">maria_garcia</div>
-            <div style="font-size: 0.9rem;">¡Muy buena publicación! 🔥</div>
-            <div class="text-muted" style="font-size: 0.75rem;">Hace 2 horas</div>
-          </div>
-        </div>
-
-        <div class="d-flex gap-2 mb-3">
-          <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
-            style="width: 36px; height: 36px; font-size: 0.85rem;">C</div>
-          <div class="bg-light rounded p-2 flex-grow-1">
-            <div class="fw-semibold" style="font-size: 0.85rem;">carlos_lopez</div>
-            <div style="font-size: 0.9rem;">Totalmente de acuerdo 👍</div>
-            <div class="text-muted" style="font-size: 0.75rem;">Hace 1 hora</div>
-          </div>
-        </div>
-
-        @if (mostrarTodosComentarios()) {
-          <div class="d-flex gap-2 mb-3">
-            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
-              style="width: 36px; height: 36px; font-size: 0.85rem;">A</div>
-            <div class="bg-light rounded p-2 flex-grow-1">
-              <div class="fw-semibold" style="font-size: 0.85rem;">ana_martinez</div>
-              <div style="font-size: 0.9rem;">Gracias por compartir esto</div>
-              <div class="text-muted" style="font-size: 0.75rem;">Hace 30 minutos</div>
-            </div>
-          </div>
-
-          <div class="d-flex gap-2 mb-3">
-            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
-              style="width: 36px; height: 36px; font-size: 0.85rem;">P</div>
-            <div class="bg-light rounded p-2 flex-grow-1">
-              <div class="fw-semibold" style="font-size: 0.85rem;">pedro_sanchez</div>
-              <div style="font-size: 0.9rem;">Excelente contenido 🙌</div>
-              <div class="text-muted" style="font-size: 0.75rem;">Hace 15 minutos</div>
-            </div>
-          </div>
-        }
-
-        <button
-          class="btn btn-link p-0 text-decoration-none"
-          style="color: var(--fb-blue); font-size: 0.9rem;"
-          (click)="mostrarTodosComentarios.set(!mostrarTodosComentarios())"
-        >
-          {{ mostrarTodosComentarios() ? 'Ver menos comentarios ▲' : 'Ver más comentarios ▼' }}
-        </button>
-
       </div>
     </div>
   </div>

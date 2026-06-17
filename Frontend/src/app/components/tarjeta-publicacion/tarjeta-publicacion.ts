@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter, inject, computed, signal, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { Publicacion } from '../../models/publicacion.model';
 import { AuthService } from '../../services/auth.service';
 import { PublicacionesService } from '../../services/publicaciones.service';
@@ -17,11 +18,11 @@ export class TarjetaPublicacion implements OnInit {
 
   private authService = inject(AuthService);
   private publicacionesService = inject(PublicacionesService);
+  private router = inject(Router);
 
   usuarioActual = this.authService.usuarioActual;
 
   likes = signal<string[]>([]);
-  mostrarTodosComentarios = signal(false);
 
   ngOnInit(): void {
     this.likes.set(this.publicacion.likes);
@@ -61,6 +62,10 @@ export class TarjetaPublicacion implements OnInit {
       },
       error: (err) => console.error(err),
     });
+  }
+
+  verDetalle(): void {
+    this.router.navigate(['/publicacion', this.publicacion.id]);
   }
 
   eliminar(): void {

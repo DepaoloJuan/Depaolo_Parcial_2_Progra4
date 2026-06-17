@@ -136,6 +136,14 @@ export class PublicacionesService {
     return { mensaje: 'Like eliminado correctamente' };
   }
 
+  async obtenerPorId(id: string) {
+    const publicacion = await this.publicacionesRepository.buscarPorId(id);
+    if (!publicacion) {
+      throw new NotFoundException('Publicación no encontrada');
+    }
+    return publicacion;
+  }
+
   private sanitizar(publicacion: any) {
     const obj = publicacion.toObject
       ? publicacion.toObject({ virtuals: true })

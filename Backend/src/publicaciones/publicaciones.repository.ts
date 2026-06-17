@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Publicacion, PublicacionDocument } from './schemas/publicacion.schema';
 import { CrearPublicacionDto } from './dto/crear-publicacion.dto';
 import { ListarPublicacionesDto } from './dto/listar-publicaciones.dto';
@@ -59,7 +59,7 @@ export class PublicacionesRepository {
 
   async buscarPorId(id: string): Promise<PublicacionDocument | null> {
     return this.modelo
-      .findById(id)
+      .findOne({ _id: new Types.ObjectId(id), activo: true })
       .populate('usuario', 'nombre apellido nombreUsuario fotoPerfil')
       .exec();
   }
