@@ -59,6 +59,12 @@ export class UsuariosService {
     return this.sanitizarUsuario(usuario);
   }
 
+  async buscarPorId(id: string) {
+    const usuario = await this.usuariosRepository.buscarPorId(id);
+    if (!usuario) return null;
+    return this.sanitizarUsuario(usuario);
+  }
+
   private sanitizarUsuario(usuario: any) {
     const obj = usuario.toObject ? usuario.toObject({ virtuals: true }) : usuario;
     const { contrasenia, _id, __v, ...resto } = obj;

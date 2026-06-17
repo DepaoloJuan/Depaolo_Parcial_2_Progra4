@@ -71,6 +71,14 @@
     >
       👍 {{ likes().length }}
     </button>
+
+    <button
+      class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
+      data-bs-toggle="modal"
+      [attr.data-bs-target]="'#modalDetalle' + publicacion.id"
+    >
+      💬 4 comentarios
+    </button>
   </div>
 </div>
 
