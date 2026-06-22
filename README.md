@@ -48,25 +48,3 @@ Panel de **administración** con gestión de usuarios (listar, crear, habilitar/
 
 ---
 
-## Estructura del proyecto
-
-\`\`\`
-├── Backend/          # NestJS API
-│   └── src/
-│       ├── autenticacion/
-│       ├── usuarios/
-│       ├── publicaciones/
-│       ├── comentarios/
-│       └── cloudinary/
-└── Frontend/         # Angular 21
-    └── src/
-        ├── app/
-        │   ├── components/
-        │   ├── pages/
-        │   ├── services/
-        │   ├── guards/
-        │   ├── interceptors/
-        │   ├── pipes/
-        │   └── directives/
-        └── environments/
-\`\`\`
