@@ -1,8 +1,7 @@
-<div>
-  <div class="registro-card">
+<div class="min-vh-100 d-flex align-items-center justify-content-center py-4">
+  <div class="card shadow p-4" style="width: 100%; max-width: 520px;">
 
-    <h2>Crear cuenta</h2>
-    <p class="subtitulo">Es rápido y fácil.</p>
+    <h2 class="text-center mb-4">Crear cuenta</h2>
 
     <form [formGroup]="formulario" (ngSubmit)="onSubmit()">
 
@@ -135,7 +134,7 @@
 
       <!-- Descripción -->
       <div class="mb-3">
-        <label for="descripcion" class="form-label">Descripción breve <span style="color:#606770; font-weight:400;">(opcional)</span></label>
+        <label for="descripcion" class="form-label">Descripción breve <span class="text-muted">(opcional)</span></label>
         <textarea
           id="descripcion"
           class="form-control"
@@ -160,7 +159,7 @@
 
       <!-- Foto de perfil -->
       <div class="mb-3">
-        <label for="fotoPerfil" class="form-label">Foto de perfil <span style="color:#606770; font-weight:400;">(opcional)</span></label>
+        <label for="fotoPerfil" class="form-label">Foto de perfil <span class="text-muted">(opcional)</span></label>
         @if (previsualizacion()) {
           <div class="mb-2 text-center">
             <img [src]="previsualizacion()" alt="Vista previa" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;" />
@@ -183,7 +182,7 @@
       <!-- Botón -->
       <button
         type="submit"
-        class="btn-crear"
+        class="btn btn-primary w-100"
         [disabled]="formulario.invalid || cargando()"
       >
         @if (cargando()) {
@@ -196,9 +195,7 @@
 
     </form>
 
-    <hr class="divider" />
-
-    <p class="link-login">
+    <p class="text-center mt-3 mb-0">
       ¿Ya tenés cuenta? <a routerLink="/login">Iniciá sesión</a>
     </p>
 
