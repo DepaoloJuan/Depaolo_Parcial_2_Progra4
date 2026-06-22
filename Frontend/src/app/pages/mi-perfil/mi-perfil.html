@@ -1,0 +1,239 @@
+<app-navbar />
+
+<div class="container mt-4" style="max-width: 680px;">
+  @if (usuarioActual()) {
+
+    <!-- Card de perfil estilo moderno -->
+    <div class="card shadow-sm mb-4 overflow-visible" style="border-radius: 16px;">
+
+      <!-- Header con gradiente -->
+      <div class="rounded-top" style="height: 80px; background: linear-gradient(135deg, #1877F2, #42a5f5);"></div>
+
+      <!-- Foto centrada sobresaliendo -->
+      <div class="text-center" style="margin-top: -50px;">
+        @if (previsualizacion()) {
+          <img [src]="previsualizacion()" class="rounded-circle border border-4 border-white shadow"
+            style="width: 100px; height: 100px; object-fit: cover;" />
+        } @else if (usuarioActual()?.fotoPerfil) {
+          <img [src]="usuarioActual()?.fotoPerfil" class="rounded-circle border border-4 border-white shadow"
+            style="width: 100px; height: 100px; object-fit: cover;" />
+        } @else {
+          <div class="rounded-circle border border-4 border-white shadow bg-primary d-flex align-items-center justify-content-center mx-auto text-white fw-bold"
+            style="width: 100px; height: 100px; font-size: 2rem;">
+            {{ usuarioActual()?.nombre?.charAt(0) }}
+          </div>
+        }
+      </div>
+
+      <div class="card-body text-center pt-2">
+        <h4 class="fw-bold mb-0">{{ usuarioActual()?.nombre }} {{ usuarioActual()?.apellido }}</h4>
+        <p class="text-muted mb-1">&#64;{{ usuarioActual()?.nombreUsuario }}</p>
+
+        @if (usuarioActual()?.descripcion) {
+          <p class="text-muted mb-2" style="font-size: 0.9rem;">{{ usuarioActual()?.descripcion }}</p>
+        }
+
+        <span class="badge mb-3"
+          [class.bg-danger]="usuarioActual()?.perfil === 'administrador'"
+          [class.bg-secondary]="usuarioActual()?.perfil !== 'administrador'">
+          {{ usuarioActual()?.perfil }}
+        </span>
+
+        <!-- Stats -->
+        <div class="row text-center border-top border-bottom py-3 mb-3">
+          <div class="col">
+            <div class="fw-bold fs-5">{{ publicaciones().length }}</div>
+            <div class="text-muted" style="font-size: 0.8rem;">Publicaciones</div>
+          </div>
+          <div class="col border-start border-end">
+            <div class="fw-bold fs-5">{{ usuarioActual()?.correo }}</div>
+            <div class="text-muted" style="font-size: 0.8rem;">Correo</div>
+          </div>
+          <div class="col">
+            <div class="fw-bold fs-5">{{ usuarioActual()?.fechaNacimiento | date:'dd/MM/yyyy' }}</div>
+            <div class="text-muted" style="font-size: 0.8rem;">Nacimiento</div>
+          </div>
+        </div>
+
+        <!-- Botón editar -->
+        <button class="btn btn-primary px-4 rounded-pill"
+          data-bs-toggle="modal" data-bs-target="#modalEditarPerfil">
+          ✏️ Editar perfil
+        </button>
+      </div>
+    </div>
+
+    <!-- Crear publicación -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        @if (!mostrarFormulario()) {
+          <button
+            class="btn btn-light w-100 text-start text-muted rounded-pill"
+            (click)="mostrarFormulario.set(true)"
+          >
+            ¿Qué estás pensando, {{ usuarioActual()?.nombre }}?
+          </button>
+        } @else {
+          <form [formGroup]="formularioPublicacion" (ngSubmit)="onCrearPublicacion()">
+            <div class="mb-2">
+              <input
+                type="text"
+                class="form-control"
+                formControlName="titulo"
+                placeholder="Título"
+              />
+            </div>
+            <div class="mb-2">
+              <textarea
+                class="form-control"
+                formControlName="descripcion"
+                placeholder="¿Qué estás pensando?"
+                rows="3"
+              ></textarea>
+            </div>
+            <div class="mb-2">
+              <input
+                type="file"
+                class="form-control"
+                accept="image/jpeg,image/png,image/webp"
+                (change)="onImagenPublicacionSeleccionada($event)"
+              />
+            </div>
+            @if (errorCrear()) {
+              <div class="alert alert-danger py-2">{{ errorCrear() }}</div>
+            }
+            <div class="d-flex gap-2">
+              <button
+                type="submit"
+                class="btn btn-primary"
+                [disabled]="formularioPublicacion.invalid || creando()"
+              >
+                @if (creando()) {
+                  <span class="spinner-border spinner-border-sm me-1"></span>
+                }
+                Publicar
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                (click)="mostrarFormulario.set(false)"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        }
+      </div>
+    </div>
+
+    <!-- Últimas publicaciones -->
+    <h5 class="fw-bold mb-3">Mis últimas publicaciones</h5>
+
+    @if (cargando()) {
+      <div class="text-center py-3">
+        <div class="spinner-border text-primary"></div>
+      </div>
+    }
+
+    @for (publicacion of publicaciones(); track publicacion.id) {
+      <app-tarjeta-publicacion
+        [publicacion]="publicacion"
+        (publicacionEliminada)="onPublicacionEliminada($event)"
+        (likeActualizado)="onLikeActualizado()"
+      />
+    }
+
+    @if (publicaciones().length === 0 && !cargando()) {
+      <div class="text-center text-muted py-3">
+        Todavía no publicaste nada.
+      </div>
+    }
+
+  } @else {
+    <div class="alert alert-warning text-center">
+      No hay usuario logueado.
+    </div>
+  }
+</div>
+
+<!-- Modal editar perfil -->
+<div class="modal fade" id="modalEditarPerfil" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Editar perfil</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="formularioEditar">
+
+          <div class="mb-3">
+            <label class="form-label">Nombre</label>
+            <input type="text" class="form-control" formControlName="nombre" />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Apellido</label>
+            <input type="text" class="form-control" formControlName="apellido" />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Descripción</label>
+            <textarea class="form-control" formControlName="descripcion" rows="2"></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Fecha de nacimiento</label>
+            <input type="date" class="form-control" formControlName="fechaNacimiento" />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Foto de perfil</label>
+            @if (previsualizacion()) {
+              <div class="mb-2 text-center">
+                <img
+                  [src]="previsualizacion()"
+                  class="rounded-circle"
+                  style="width: 60px; height: 60px; object-fit: cover;"
+                />
+              </div>
+            }
+            <input
+              type="file"
+              class="form-control"
+              accept="image/jpeg,image/png,image/webp"
+              (change)="onImagenSeleccionada($event)"
+            />
+          </div>
+
+          @if (exitoEditar()) {
+            <div class="alert alert-success py-2">
+              ✅ Perfil actualizado correctamente
+            </div>
+          }
+
+          @if (errorEditar()) {
+            <div class="alert alert-danger py-2">{{ errorEditar() }}</div>
+          }
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          [disabled]="guardando()"
+          (click)="onGuardarPerfil()"
+        >
+          @if (guardando()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          }
+          Guardar cambios
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

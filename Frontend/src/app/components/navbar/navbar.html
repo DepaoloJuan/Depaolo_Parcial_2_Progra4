@@ -1,0 +1,22 @@
+<nav class="navbar-redsocial">
+  <a class="navbar-brand" routerLink="/publicaciones">RedSocial</a>
+
+  <div class="nav-links">
+    <a routerLink="/publicaciones" routerLinkActive="active">Publicaciones</a>
+
+    @if (usuarioActual()) {
+      <a routerLink="/mi-perfil" routerLinkActive="active" style="display:flex; align-items:center; gap:6px;">
+        @if (usuarioActual()?.fotoPerfil) {
+          <img [src]="usuarioActual()?.fotoPerfil" class="nav-foto" />
+        } @else {
+          <div class="nav-inicial">{{ usuarioActual()?.nombre?.charAt(0) }}</div>
+        }
+        Mi Perfil
+      </a>
+      <button class="btn-logout" (click)="logout()">Cerrar sesión</button>
+    } @else {
+      <a routerLink="/login">Iniciar sesión</a>
+      <a routerLink="/registro">Registrarse</a>
+    }
+  </div>
+</nav>

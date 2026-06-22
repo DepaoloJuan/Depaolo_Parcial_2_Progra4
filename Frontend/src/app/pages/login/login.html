@@ -1,0 +1,61 @@
+<div class="login-wrapper">
+  <div class="login-card">
+
+    <h1>RedSocial</h1>
+    <p class="subtitulo">Conectate con tus amigos y el mundo</p>
+
+    <form [formGroup]="formulario" (ngSubmit)="onSubmit()">
+
+      <div class="mb-3">
+        <input
+          type="text"
+          class="form-control form-control-lg"
+          [class.is-invalid]="campoInvalido('identificador')"
+          formControlName="identificador"
+          placeholder="Correo o nombre de usuario"
+        />
+        @if (campoInvalido('identificador')) {
+          <div class="invalid-feedback">El identificador es obligatorio</div>
+        }
+      </div>
+
+      <div class="mb-3">
+        <input
+          type="password"
+          class="form-control form-control-lg"
+          [class.is-invalid]="campoInvalido('contrasenia')"
+          formControlName="contrasenia"
+          placeholder="Contraseña"
+        />
+        @if (campoInvalido('contrasenia')) {
+          <div class="invalid-feedback">La contraseña es obligatoria</div>
+        }
+      </div>
+
+      @if (error()) {
+        <div class="alert alert-danger py-2 text-center">{{ error() }}</div>
+      }
+
+      <button
+        type="submit"
+        class="btn-facebook"
+        [disabled]="formulario.invalid || cargando()"
+      >
+        @if (cargando()) {
+          <span class="spinner-border spinner-border-sm me-2"></span>
+          Iniciando sesión...
+        } @else {
+          Iniciar sesión
+        }
+      </button>
+
+    </form>
+
+    <hr class="divider" />
+
+    <a routerLink="/registro" style="text-decoration: none;">
+      <button class="btn-registro">Crear cuenta nueva</button>
+    </a>
+
+  </div>
+</div>

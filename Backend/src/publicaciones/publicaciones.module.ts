@@ -1,0 +1,20 @@
+import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+import { PublicacionesController } from './publicaciones.controller';
+import { PublicacionesService } from './publicaciones.service';
+import { PublicacionesRepository } from './publicaciones.repository';
+import { Publicacion, PublicacionSchema } from './schemas/publicacion.schema';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
+
+@Module({
+  imports: [
+    MongooseModule.forFeature([
+      { name: Publicacion.name, schema: PublicacionSchema },
+    ]),
+    CloudinaryModule,
+  ],
+  controllers: [PublicacionesController],
+  providers: [PublicacionesService, PublicacionesRepository],
+  exports: [PublicacionesService],
+})
+export class PublicacionesModule {}
