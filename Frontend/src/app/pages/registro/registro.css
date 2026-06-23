@@ -66,25 +66,3 @@
   border-color: #1877f2;
   box-shadow: 0 0 0 2px rgba(24,119,242,0.2);
 }
-
-.divider {
-  border: none;
-  border-top: 1px solid #dadde1;
-  margin: 20px 0;
-}
-
-.link-login {
-  text-align: center;
-  font-size: 0.9rem;
-  color: #606770;
-}
-
-.link-login a {
-  color: #1877f2;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.link-login a:hover {
-  text-decoration: underline;
-}

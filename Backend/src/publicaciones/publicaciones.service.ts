@@ -47,7 +47,6 @@ export class PublicacionesService {
     return {
       data: publicaciones.map((p: any) => {
         const { _id, __v, ...resto } = p;
-        // limpiar también el _id del usuario populado
         if (resto.usuario && resto.usuario._id) {
           resto.usuario = {
             id: resto.usuario._id.toString(),
