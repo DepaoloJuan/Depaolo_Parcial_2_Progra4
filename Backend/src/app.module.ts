@@ -5,25 +5,30 @@ import { UsuariosModule } from './usuarios/usuarios.module';
 import { AutenticacionModule } from './autenticacion/autenticacion.module';
 import { PublicacionesModule } from './publicaciones/publicaciones.module';
 
+/**
+ * Módulo raíz de la aplicación.
+ * Registra la configuración global, la conexión a MongoDB y los módulos de negocio.
+ */
 @Module({
   imports: [
-    // ConfigModule lee el .env y lo hace disponible en toda la app
+    // ConfigModule hace disponibles las variables de .env en toda la app via ConfigService
     ConfigModule.forRoot({
-      isGlobal: true,
+      isGlobal: true,   // no hace falta importarlo en cada módulo
       envFilePath: '.env',
     }),
 
-    // MongooseModule conecta a MongoDB Atlas
-    // forRootAsync espera a que ConfigModule esté listo antes de conectar
+    // MongooseModule.forRootAsync espera a que ConfigModule cargue el .env
+    // antes de intentar conectar a MongoDB Atlas
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         uri: configService.get<string>('MONGO_URI'),
+        // connectionFactory permite enganchar eventos del ciclo de vida de la conexión
         connectionFactory: (connection) => {
           connection.on('connected', () =>
             console.log('✅ MongoDB conectado exitosamente'),
           );
-          connection.on('error', (err) =>
+          connection.on('error', (err: Error) =>
             console.log('❌ Error en conexión MongoDB:', err),
           );
           return connection;
@@ -33,9 +38,7 @@ import { PublicacionesModule } from './publicaciones/publicaciones.module';
     }),
 
     UsuariosModule,
-
     AutenticacionModule,
-
     PublicacionesModule,
   ],
   controllers: [],

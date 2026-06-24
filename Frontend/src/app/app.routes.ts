@@ -1,5 +1,10 @@
 import { Routes } from '@angular/router';
 
+/**
+ * Configuración de rutas de la aplicación.
+ * Todas las páginas usan lazy loading (loadComponent) para que Angular genere
+ * un chunk separado por ruta y reduzca el bundle inicial.
+ */
 export const routes: Routes = [
   {
     path: '',
@@ -23,6 +28,7 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/mi-perfil/mi-perfil').then((m) => m.MiPerfil),
   },
   {
+    // Ruta comodín: cualquier URL desconocida redirige al feed principal
     path: '**',
     redirectTo: 'publicaciones',
   },

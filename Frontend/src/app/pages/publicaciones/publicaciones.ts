@@ -6,6 +6,10 @@ import { PublicacionesService } from '../../services/publicaciones.service';
 import { AuthService } from '../../services/auth.service';
 import { Publicacion } from '../../models/publicacion.model';
 
+/**
+ * Página principal del feed de publicaciones.
+ * Maneja el listado paginado, el ordenamiento y la creación de nuevas publicaciones.
+ */
 @Component({
   selector: 'app-publicaciones',
   imports: [Navbar, TarjetaPublicacion, ReactiveFormsModule],
@@ -19,15 +23,17 @@ export class Publicaciones implements OnInit {
 
   usuarioActual = this.authService.usuarioActual;
 
+  // --- Estado del listado ---
   publicaciones = signal<Publicacion[]>([]);
   total = signal(0);
   offset = signal(0);
   limit = 10;
   ordenarPor = signal<'fecha' | 'likes'>('fecha');
   cargando = signal(false);
+  /** true cuando hay más publicaciones que cargar (total > publicaciones cargadas). */
   hayMas = signal(false);
 
-  // formulario crear publicación
+  // --- Estado del formulario de creación ---
   mostrarFormulario = signal(false);
   formulario: FormGroup = this.buildForm();
   imagenSeleccionada = signal<File | null>(null);
@@ -45,6 +51,11 @@ export class Publicaciones implements OnInit {
     });
   }
 
+  /**
+   * Carga publicaciones del backend y las agrega al array de la signal.
+   * @param reiniciar Si es true (por defecto) resetea offset y limpia el array antes de cargar.
+   *                  Si es false, acumula los resultados (modo "cargar más").
+   */
   cargarPublicaciones(reiniciar = true): void {
     if (reiniciar) {
       this.offset.set(0);
@@ -55,6 +66,7 @@ export class Publicaciones implements OnInit {
 
     this.publicacionesService.listar(this.offset(), this.limit, this.ordenarPor()).subscribe({
       next: (resp) => {
+        // update() recibe la función transformadora; evita leer y re-setear la signal en dos pasos
         this.publicaciones.update((prev) => [...prev, ...resp.data]);
         this.total.set(resp.total);
         this.hayMas.set(this.publicaciones().length < resp.total);
@@ -64,11 +76,13 @@ export class Publicaciones implements OnInit {
     });
   }
 
+  /** Avanza el offset en una página y carga sin reiniciar el array existente. */
   cargarMas(): void {
     this.offset.update((v) => v + this.limit);
     this.cargarPublicaciones(false);
   }
 
+  /** Cambia el criterio de ordenamiento y recarga desde el principio. */
   cambiarOrden(orden: 'fecha' | 'likes'): void {
     this.ordenarPor.set(orden);
     this.cargarPublicaciones();
@@ -81,6 +95,7 @@ export class Publicaciones implements OnInit {
     }
   }
 
+  /** Envía la nueva publicación y, al terminar, recarga el feed desde el principio. */
   onCrearPublicacion(): void {
     if (this.formulario.invalid) return;
     const usuario = this.usuarioActual();
@@ -112,13 +127,14 @@ export class Publicaciones implements OnInit {
     });
   }
 
+  /** Elimina la publicación del array local sin recargar toda la lista. */
   onPublicacionEliminada(id: string): void {
     this.publicaciones.update((prev) => prev.filter((p) => p.id !== id));
     this.total.update((v) => v - 1);
   }
 
   onLikeActualizado(_id: string): void {
-    // no recargamos — el componente tarjeta ya actualizó su estado local
+    // No se recarga la lista: TarjetaPublicacion actualiza su propio estado local de likes
   }
 
   campoInvalido(campo: string): boolean {

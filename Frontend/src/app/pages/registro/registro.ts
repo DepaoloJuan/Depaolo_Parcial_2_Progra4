@@ -10,13 +10,20 @@ import {
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
-// validador personalizado que verifica que las contraseñas coincidan
+/**
+ * Validador a nivel de grupo que verifica que contrasenia y repetirContrasenia coincidan.
+ * Se aplica al FormGroup completo (no a un control individual) para acceder a ambos campos.
+ */
 function contraseniasIguales(group: AbstractControl): ValidationErrors | null {
   const contrasenia = group.get('contrasenia')?.value;
   const repetirContrasenia = group.get('repetirContrasenia')?.value;
   return contrasenia === repetirContrasenia ? null : { noCoinciden: true };
 }
 
+/**
+ * Página de registro de nuevos usuarios.
+ * Incluye previsualización de la imagen de perfil antes de enviar el formulario.
+ */
 @Component({
   selector: 'app-registro',
   imports: [ReactiveFormsModule, RouterLink],
@@ -57,10 +64,15 @@ export class Registro {
         descripcion: ['', Validators.maxLength(200)],
         perfil: ['usuario', Validators.required],
       },
+      // El validador de grupo se ejecuta después de todos los validadores de campo
       { validators: contraseniasIguales },
     );
   }
 
+  /**
+   * Captura la imagen seleccionada por el usuario y genera una previsualización
+   * usando FileReader para convertir el archivo a una URL de datos (data URL).
+   */
   onImagenSeleccionada(evento: Event): void {
     const input = evento.target as HTMLInputElement;
     if (!input.files?.length) return;
@@ -68,7 +80,6 @@ export class Registro {
     const archivo = input.files[0];
     this.imagenSeleccionada.set(archivo);
 
-    // previsualización de la imagen seleccionada
     const reader = new FileReader();
     reader.onload = (e) => {
       this.previsualizacion.set(e.target?.result as string);
@@ -76,13 +87,17 @@ export class Registro {
     reader.readAsDataURL(archivo);
   }
 
+  /**
+   * Construye un FormData con todos los campos del formulario y la imagen (si la hay).
+   * FormData es necesario para enviar archivos binarios junto con datos de texto en
+   * un solo request multipart/form-data.
+   */
   onSubmit(): void {
     if (this.formulario.invalid) return;
 
     this.cargando.set(true);
     this.error.set(null);
 
-    // construimos FormData porque enviamos imagen + texto
     const formData = new FormData();
     const valores = this.formulario.value;
 

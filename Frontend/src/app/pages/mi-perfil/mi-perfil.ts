@@ -7,6 +7,10 @@ import { AuthService } from '../../services/auth.service';
 import { PublicacionesService } from '../../services/publicaciones.service';
 import { Publicacion } from '../../models/publicacion.model';
 
+/**
+ * Página de perfil del usuario logueado.
+ * Muestra sus datos, sus últimas publicaciones y permite editar el perfil.
+ */
 @Component({
   selector: 'app-mi-perfil',
   imports: [Navbar, TarjetaPublicacion, DatePipe, ReactiveFormsModule],
@@ -20,15 +24,20 @@ export class MiPerfil implements OnInit {
 
   usuarioActual = this.authService.usuarioActual;
   publicaciones = signal<Publicacion[]>([]);
+
+  // --- Estado de edición de perfil ---
   cargando = signal(false);
   guardando = signal(false);
   errorEditar = signal<string | null>(null);
+  /** Se pone en true por 2 segundos para mostrar el mensaje de éxito antes de cerrar el modal. */
   exitoEditar = signal(false);
   imagenSeleccionada = signal<File | null>(null);
   previsualizacion = signal<string | null>(null);
 
   formularioEditar: FormGroup = this.buildForm();
   mostrarFormulario = signal(false);
+
+  // --- Estado de creación de publicación ---
   formularioPublicacion: FormGroup = this.buildFormPublicacion();
   imagenPublicacion = signal<File | null>(null);
   creando = signal(false);
@@ -38,10 +47,16 @@ export class MiPerfil implements OnInit {
     const usuario = this.usuarioActual();
     if (usuario) {
       this.cargarPublicaciones(usuario.id);
+      // Se reconstruye el form aquí para que ya tenga los datos del usuario
       this.formularioEditar = this.buildForm();
     }
   }
 
+  /**
+   * Pre-rellena el formulario de edición con los datos actuales del usuario.
+   * fechaNacimiento se recorta a 10 chars (YYYY-MM-DD) para que el input date
+   * lo reconozca correctamente (la API devuelve el ISO completo con hora y zona).
+   */
   private buildForm(): FormGroup {
     const usuario = this.usuarioActual();
     return this.fb.group({
@@ -52,6 +67,7 @@ export class MiPerfil implements OnInit {
     });
   }
 
+  /** Carga las últimas 3 publicaciones del usuario (ordenadas por fecha). */
   private cargarPublicaciones(usuarioId: string): void {
     this.cargando.set(true);
     this.publicacionesService.listar(0, 3, 'fecha', usuarioId).subscribe({
@@ -63,6 +79,7 @@ export class MiPerfil implements OnInit {
     });
   }
 
+  /** Genera una previsualización de la imagen nueva antes de subirla. */
   onImagenSeleccionada(evento: Event): void {
     const input = evento.target as HTMLInputElement;
     if (!input.files?.length) return;
@@ -73,6 +90,12 @@ export class MiPerfil implements OnInit {
     reader.readAsDataURL(archivo);
   }
 
+  /**
+   * Guarda los cambios del perfil.
+   * Solo agrega al FormData los campos que tienen valor (partial update).
+   * Tras el éxito, espera 2s, muestra feedback y cierra el modal de Bootstrap
+   * accediendo a su instancia via la API global de Bootstrap (window.bootstrap).
+   */
   onGuardarPerfil(): void {
     const usuario = this.usuarioActual();
     if (!usuario) return;
@@ -96,6 +119,8 @@ export class MiPerfil implements OnInit {
         this.imagenSeleccionada.set(null);
         this.previsualizacion.set(null);
         this.exitoEditar.set(true);
+
+        // Cierra el modal de Bootstrap después de mostrar el mensaje de éxito
         setTimeout(() => {
           this.exitoEditar.set(false);
           const modal = document.getElementById('modalEditarPerfil');
@@ -126,6 +151,7 @@ export class MiPerfil implements OnInit {
     }
   }
 
+  /** Crea una publicación desde el perfil y recarga las publicaciones del usuario. */
   onCrearPublicacion(): void {
     if (this.formularioPublicacion.invalid) return;
     const usuario = this.usuarioActual();
@@ -161,6 +187,7 @@ export class MiPerfil implements OnInit {
     this.publicaciones.update((prev) => prev.filter((p) => p.id !== id));
   }
 
+  /** Recarga las publicaciones del usuario para reflejar el cambio en el conteo de likes. */
   onLikeActualizado(): void {
     const usuario = this.usuarioActual();
     if (usuario) this.cargarPublicaciones(usuario.id);

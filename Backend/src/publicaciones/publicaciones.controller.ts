@@ -17,11 +17,19 @@ import { CrearPublicacionDto } from './dto/crear-publicacion.dto';
 import { ListarPublicacionesDto } from './dto/listar-publicaciones.dto';
 import { multerConfig } from '../cloudinary/multer.config';
 
+/**
+ * Controlador de publicaciones.
+ * Expone los endpoints de creación, listado, eliminación y manejo de likes.
+ */
 @Controller('publicaciones')
 export class PublicacionesController {
   constructor(private readonly publicacionesService: PublicacionesService) {}
 
-  // POST /api/v1/publicaciones
+  /**
+   * POST /api/v1/publicaciones
+   * Crea una publicación. Acepta multipart/form-data porque la imagen es opcional
+   * pero debe viajar en el mismo request que los campos de texto.
+   */
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(FileInterceptor('imagen', multerConfig))
@@ -32,13 +40,21 @@ export class PublicacionesController {
     return this.publicacionesService.crear(dto, imagen);
   }
 
-  // GET /api/v1/publicaciones
+  /**
+   * GET /api/v1/publicaciones
+   * Lista publicaciones activas. Soporta paginación y ordenamiento via query params:
+   *   ?offset=0&limit=10&ordenarPor=fecha|likes&usuarioId=<id>
+   */
   @Get()
   listar(@Query() query: ListarPublicacionesDto) {
     return this.publicacionesService.listar(query);
   }
 
-  // DELETE /api/v1/publicaciones/:id
+  /**
+   * DELETE /api/v1/publicaciones/:id
+   * Baja lógica. La autorización se pasa como query params porque no hay JWT aún:
+   *   ?usuarioId=<id>&perfil=usuario|administrador
+   */
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   eliminar(
@@ -49,14 +65,20 @@ export class PublicacionesController {
     return this.publicacionesService.eliminar(id, usuarioId, perfil);
   }
 
-  // POST /api/v1/publicaciones/:id/likes
+  /**
+   * POST /api/v1/publicaciones/:id/likes
+   * Agrega un like. El usuarioId va en el body (JSON) para no exponerlo en la URL.
+   */
   @Post(':id/likes')
   @HttpCode(HttpStatus.OK)
   darLike(@Param('id') id: string, @Body('usuarioId') usuarioId: string) {
     return this.publicacionesService.darLike(id, usuarioId);
   }
 
-  // DELETE /api/v1/publicaciones/:id/likes
+  /**
+   * DELETE /api/v1/publicaciones/:id/likes
+   * Quita un like. El usuarioId va en el body del DELETE .
+   */
   @Delete(':id/likes')
   @HttpCode(HttpStatus.OK)
   quitarLike(@Param('id') id: string, @Body('usuarioId') usuarioId: string) {
