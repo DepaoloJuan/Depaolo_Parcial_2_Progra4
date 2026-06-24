@@ -10,6 +10,10 @@ import {
   IsIn,
 } from 'class-validator';
 
+/**
+ * DTO de validación para el registro de un nuevo usuario.
+ * El ValidationPipe global rechaza con 400 cualquier campo que no pase estas reglas.
+ */
 export class CrearUsuarioDto {
   @IsNotEmpty({ message: 'El nombre es obligatorio' })
   @IsString()
@@ -31,6 +35,13 @@ export class CrearUsuarioDto {
   @MaxLength(30)
   nombreUsuario!: string;
 
+  /**
+   * La contraseña debe cumplir tres reglas:
+   *   - Al menos 8 caracteres
+   *   - Al menos una letra mayúscula  (?=.*[A-Z])
+   *   - Al menos un dígito            (?=.*\d)
+   * El hash se genera en UsuariosService antes de persistir.
+   */
   @IsNotEmpty({ message: 'La contraseña es obligatoria' })
   @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
   @Matches(/(?=.*[A-Z])/, {
@@ -41,6 +52,7 @@ export class CrearUsuarioDto {
   })
   contrasenia!: string;
 
+  /** Formato ISO 8601, ej: "2000-05-20". */
   @IsNotEmpty({ message: 'La fecha de nacimiento es obligatoria' })
   @IsDateString()
   fechaNacimiento!: string;
@@ -50,6 +62,7 @@ export class CrearUsuarioDto {
   @MaxLength(200)
   descripcion?: string;
 
+  /** Si no se envía, el schema de Mongoose aplica el default 'usuario'. */
   @IsOptional()
   @IsString()
   @IsIn(['usuario', 'administrador'])

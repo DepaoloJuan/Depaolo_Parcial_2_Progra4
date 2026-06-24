@@ -3,6 +3,11 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
+/**
+ * Página de inicio de sesión.
+ * Usa Reactive Forms para validar los campos antes de hacer el request.
+ * La navegación post-login la maneja AuthService (no este componente).
+ */
 @Component({
   selector: 'app-login',
   imports: [ReactiveFormsModule, RouterLink],
@@ -25,6 +30,7 @@ export class Login {
         [
           Validators.required,
           Validators.minLength(8),
+          // Las mismas reglas que el backend para dar feedback inmediato al usuario
           Validators.pattern(/(?=.*[A-Z])/),
           Validators.pattern(/(?=.*\d)/),
         ],
@@ -40,16 +46,17 @@ export class Login {
 
     const { identificador, contrasenia } = this.formulario.value;
 
-    // delega todo al servicio
     this.authService.login(identificador, contrasenia).subscribe({
       next: () => this.cargando.set(false),
       error: (err) => {
         this.cargando.set(false);
+        // err.error.message viene del body de la respuesta de error del backend
         this.error.set(err.error?.message ?? 'Error al iniciar sesión');
       },
     });
   }
 
+  /** Devuelve true si el campo fue tocado y es inválido (para mostrar estilos de error). */
   campoInvalido(campo: string): boolean {
     const control = this.formulario.get(campo);
     return !!(control?.invalid && control?.touched);
