@@ -79,10 +79,29 @@ export class UsuariosService {
     return this.sanitizarUsuario(usuario);
   }
 
-  /**
-   * Elimina contrasenia, _id y __v antes de devolver el usuario al cliente.
-   * Usa toObject({ virtuals: true }) para incluir el campo "id" virtual de Mongoose.
-   */
+  async buscarPorId(id: string) {
+    const usuario = await this.usuariosRepository.buscarPorId(id);
+    if (!usuario) return null;
+    return this.sanitizarUsuario(usuario);
+  }
+
+  async listar() {
+    const usuarios = await this.usuariosRepository.listar();
+    return usuarios.map((u) => this.sanitizarUsuario(u));
+  }
+
+  async deshabilitar(id: string) {
+    const usuario = await this.usuariosRepository.deshabilitar(id);
+    if (!usuario) throw new NotFoundException('Usuario no encontrado');
+    return this.sanitizarUsuario(usuario);
+  }
+
+  async rehabilitar(id: string) {
+    const usuario = await this.usuariosRepository.rehabilitar(id);
+    if (!usuario) throw new NotFoundException('Usuario no encontrado');
+    return this.sanitizarUsuario(usuario);
+  }
+
   private sanitizarUsuario(usuario: any) {
     const obj = usuario.toObject ? usuario.toObject({ virtuals: true }) : usuario;
     const { contrasenia, _id, __v, ...resto } = obj;

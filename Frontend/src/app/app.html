@@ -1,1 +1,23 @@
 <router-outlet />
+
+<!-- Modal de sesión por vencer — disponible en toda la app -->
+<div class="modal fade" id="modalSesion" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">⚠️ Tu sesión está por vencer</h5>
+      </div>
+      <div class="modal-body">
+        <p>Tu sesión vence en <strong>5 minutos</strong>. ¿Querés extenderla?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
+          No, cerrar sesión
+        </button>
+        <button type="button" class="btn btn-primary" (click)="extenderSesion()">
+          Sí, extender sesión
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

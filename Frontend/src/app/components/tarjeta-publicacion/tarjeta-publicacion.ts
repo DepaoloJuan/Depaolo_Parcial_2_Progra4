@@ -1,8 +1,10 @@
 import { Component, Input, Output, EventEmitter, inject, computed, signal, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { Publicacion } from '../../models/publicacion.model';
 import { AuthService } from '../../services/auth.service';
 import { PublicacionesService } from '../../services/publicaciones.service';
+import { FechaRelativaPipe } from '../../pipes/fecha.pipe';
+import { TruncarPipe } from '../../pipes/truncar.pipe';
 
 /**
  * Componente de tarjeta de publicación.
@@ -11,7 +13,7 @@ import { PublicacionesService } from '../../services/publicaciones.service';
  */
 @Component({
   selector: 'app-tarjeta-publicacion',
-  imports: [DatePipe],
+  imports: [FechaRelativaPipe, TruncarPipe],
   templateUrl: './tarjeta-publicacion.html',
   styleUrl: './tarjeta-publicacion.css',
 })
@@ -26,6 +28,7 @@ export class TarjetaPublicacion implements OnInit {
 
   private authService = inject(AuthService);
   private publicacionesService = inject(PublicacionesService);
+  private router = inject(Router);
 
   usuarioActual = this.authService.usuarioActual;
 
@@ -35,7 +38,6 @@ export class TarjetaPublicacion implements OnInit {
    * optimistamente al dar/quitar like, sin esperar respuesta del servidor.
    */
   likes = signal<string[]>([]);
-  mostrarTodosComentarios = signal(false);
 
   ngOnInit(): void {
     this.likes.set(this.publicacion.likes);
@@ -93,7 +95,10 @@ export class TarjetaPublicacion implements OnInit {
     });
   }
 
-  /** Elimina la publicación y notifica al componente padre para que la quite del listado. */
+  verDetalle(): void {
+    this.router.navigate(['/publicacion', this.publicacion.id]);
+  }
+
   eliminar(): void {
     const usuario = this.usuarioActual();
     if (!usuario) return;

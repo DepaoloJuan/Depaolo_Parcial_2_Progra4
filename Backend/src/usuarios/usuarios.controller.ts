@@ -1,6 +1,9 @@
 import {
   Controller,
+  Get,
+  Post,
   Put,
+  Delete,
   Param,
   Body,
   HttpCode,
@@ -12,7 +15,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UsuariosService } from './usuarios.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { ActualizarUsuarioDto } from './dto/actualizar-usuarios.dto';
+import { CrearUsuarioDto } from './dto/crear-usuario.dto';
 import { multerConfig } from '../cloudinary/multer.config';
+import { Roles } from '../autenticacion/decorators/roles.decorator';
 
 /**
  * Controlador de usuarios.
@@ -25,15 +30,51 @@ export class UsuariosController {
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
-  /**
-   * PUT /api/v1/usuarios/:id
-   * Actualiza el perfil del usuario. Acepta multipart/form-data para poder
-   * recibir tanto campos de texto como la nueva foto de perfil en la misma request.
-   *
-   * @param id      ID de MongoDB del usuario a actualizar.
-   * @param dto     Campos opcionales a modificar (nombre, apellido, descripcion, fechaNacimiento).
-   * @param imagen  Archivo de imagen opcional; si se incluye se sube a Cloudinary.
-   */
+  // GET /api/v1/usuarios — solo administradores
+  @Get()
+  @Roles('administrador')
+  async listar() {
+    return this.usuariosService.listar();
+  }
+
+  // POST /api/v1/usuarios — solo administradores
+  // Crea un nuevo usuario con perfil elegible (usuario o administrador)
+  @Post()
+  @Roles('administrador')
+  @UseInterceptors(FileInterceptor('fotoPerfil', multerConfig))
+  async crear(
+    @Body() dto: CrearUsuarioDto,
+    @UploadedFile() imagen?: Express.Multer.File,
+  ) {
+    let fotoPerfil: string | undefined;
+    if (imagen) {
+      const resultado = await this.cloudinaryService.subirImagen(
+        imagen,
+        'perfiles',
+      );
+      fotoPerfil = resultado.secure_url;
+    }
+    return this.usuariosService.registrar(dto, fotoPerfil);
+  }
+
+  // DELETE /api/v1/usuarios/:id — solo administradores
+  // Baja lógica: pone activo: false
+  @Delete(':id')
+  @Roles('administrador')
+  @HttpCode(HttpStatus.OK)
+  async deshabilitar(@Param('id') id: string) {
+    return this.usuariosService.deshabilitar(id);
+  }
+
+  // POST /api/v1/usuarios/:id/rehabilitar — solo administradores
+  // Alta lógica: pone activo: true
+  @Post(':id/rehabilitar')
+  @Roles('administrador')
+  async rehabilitar(@Param('id') id: string) {
+    return this.usuariosService.rehabilitar(id);
+  }
+
+  // PUT /api/v1/usuarios/:id — el usuario actualiza su propio perfil
   @Put(':id')
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(FileInterceptor('fotoPerfil', multerConfig))
@@ -44,8 +85,10 @@ export class UsuariosController {
   ) {
     let fotoPerfil: string | undefined;
     if (imagen) {
-      // Subimos la imagen a la carpeta "perfiles" en Cloudinary y guardamos la URL segura
-      const resultado = await this.cloudinaryService.subirImagen(imagen, 'perfiles');
+      const resultado = await this.cloudinaryService.subirImagen(
+        imagen,
+        'perfiles',
+      );
       fotoPerfil = resultado.secure_url;
     }
     return this.usuariosService.actualizar(id, dto, fotoPerfil);

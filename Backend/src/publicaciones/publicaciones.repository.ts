@@ -46,40 +46,37 @@ export class PublicacionesRepository {
    */
   async listar(query: ListarPublicacionesDto): Promise<any[]> {
     const filtro: any = { activo: true };
+
     if (query.usuarioId) {
       // Convertimos a ObjectId para que la comparación en el filtro sea correcta
       filtro.usuario = new Types.ObjectId(query.usuarioId);
     }
 
     if (query.ordenarPor === 'likes') {
-      // Paso 1: aggregation para obtener IDs en el orden correcto
       const ids = await this.modelo
         .aggregate([
           { $match: filtro },
-          // $addFields agrega un campo virtual "likesCount" = longitud del array likes
           { $addFields: { likesCount: { $size: { $ifNull: ['$likes', []] } } } },
-          // $ifNull maneja el caso en que likes sea null (documentos viejos sin el campo)
           { $sort: { likesCount: -1, createdAt: -1 } },
           { $skip: Number(query.offset ?? 0) },
           { $limit: Number(query.limit ?? 10) },
-          { $project: { _id: 1 } },   // solo necesitamos los IDs
+          { $project: { _id: 1 } },
         ])
         .exec();
 
       const idList = ids.map((d: any) => d._id);
 
-      // Paso 2: carga los documentos completos con populate del usuario
       const docs = await this.modelo
         .find({ _id: { $in: idList } })
         .populate('usuario', 'nombre apellido nombreUsuario fotoPerfil')
         .lean()
         .exec();
 
-      // Paso 3: restaura el orden de la aggregation usando un Map de id → posición
       const orden = new Map(idList.map((id: any, i: number) => [id.toString(), i]));
       return [...docs].sort(
-        (a: any, b: any) => (orden.get(a._id.toString()) ?? 0) - (orden.get(b._id.toString()) ?? 0),
-      );
+        (a: any, b: any) =>
+          (orden.get(a._id.toString()) ?? 0) - (orden.get(b._id.toString()) ?? 0),
+      ) as any;
     }
 
     // Ordenamiento por fecha (default): find estándar con sort y paginación
@@ -103,7 +100,7 @@ export class PublicacionesRepository {
   /** Busca una publicación por su _id y puebla los datos del usuario autor. */
   async buscarPorId(id: string): Promise<PublicacionDocument | null> {
     return this.modelo
-      .findById(id)
+      .findOne({ _id: new Types.ObjectId(id), activo: true })
       .populate('usuario', 'nombre apellido nombreUsuario fotoPerfil')
       .exec();
   }

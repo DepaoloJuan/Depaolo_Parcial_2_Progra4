@@ -1,22 +1,75 @@
-<nav class="navbar-redsocial">
-  <a class="navbar-brand" routerLink="/publicaciones">RedSocial</a>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
 
-  <div class="nav-links">
-    <a routerLink="/publicaciones" routerLinkActive="active">Publicaciones</a>
+    <!-- Brand: logo + nombre -->
+    <a class="navbar-brand fw-bold d-flex align-items-center gap-2" routerLink="/publicaciones">
+      <img src="favicon-32x32.png" width="28" height="28" />
+      RedSocial
+    </a>
 
-    @if (usuarioActual()) {
-      <a routerLink="/mi-perfil" routerLinkActive="active" style="display:flex; align-items:center; gap:6px;">
-        @if (usuarioActual()?.fotoPerfil) {
-          <img [src]="usuarioActual()?.fotoPerfil" class="nav-foto" />
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto align-items-center">
+
+        @if (usuarioActual()) {
+          <!-- Dropdown avatar -->
+          <li class="nav-item dropdown">
+            <button
+              class="btn p-0 border-2 border-white rounded-circle"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+              style="outline: none; box-shadow: none;"
+            >
+              @if (usuarioActual()?.fotoPerfil) {
+                <img
+                  [src]="usuarioActual()?.fotoPerfil"
+                  class="rounded-circle"
+                  style="width: 38px; height: 38px; object-fit: cover; display: block;"
+                />
+              } @else {
+                <div
+                  class="rounded-circle bg-white d-flex align-items-center justify-content-center fw-bold text-primary"
+                  style="width: 38px; height: 38px; font-size: 1.1rem;"
+                >
+                  {{ usuarioActual()?.nombre?.charAt(0) }}
+                </div>
+              }
+            </button>
+
+            <ul class="dropdown-menu dropdown-menu-end mt-2 shadow">
+              <li class="px-3 py-1 text-muted" style="font-size: 0.8rem;">
+                {{ usuarioActual()?.nombre }} {{ usuarioActual()?.apellido }}
+              </li>
+              <li><hr class="dropdown-divider my-1"></li>
+              <li>
+                <a class="dropdown-item d-flex align-items-center gap-2" routerLink="/mi-perfil">
+                  <i class="bi bi-person-circle"></i> Mi Perfil
+                </a>
+              </li>
+              @if (esAdmin()) {
+                <li>
+                  <a class="dropdown-item d-flex align-items-center gap-2" routerLink="/dashboard/usuarios">
+                    <i class="bi bi-grid"></i> Dashboard
+                  </a>
+                </li>
+              }
+              <li><hr class="dropdown-divider my-1"></li>
+              <li>
+                <button class="dropdown-item d-flex align-items-center gap-2 text-danger" (click)="logout()">
+                  <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                </button>
+              </li>
+            </ul>
+          </li>
+
         } @else {
           <div class="nav-inicial">{{ usuarioActual()?.nombre?.charAt(0) }}</div>
         }
-        Mi Perfil
-      </a>
-      <button class="btn-logout" (click)="logout()">Cerrar sesión</button>
-    } @else {
-      <a routerLink="/login">Iniciar sesión</a>
-      <a routerLink="/registro">Registrarse</a>
-    }
+
+      </ul>
+    </div>
   </div>
 </nav>
