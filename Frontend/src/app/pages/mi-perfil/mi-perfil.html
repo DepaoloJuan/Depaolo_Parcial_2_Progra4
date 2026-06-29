@@ -42,7 +42,7 @@
         <!-- Stats -->
         <div class="row text-center border-top border-bottom py-3 mb-3">
           <div class="col">
-            <div class="fw-bold fs-5">{{ publicaciones().length }}</div>
+            <div class="fw-bold fs-5">{{ total() }}</div>
             <div class="text-muted" style="font-size: 0.8rem;">Publicaciones</div>
           </div>
           <div class="col border-start border-end">
@@ -126,8 +126,8 @@
       </div>
     </div>
 
-    <!-- Últimas publicaciones -->
-    <h5 class="fw-bold mb-3">Mis últimas publicaciones</h5>
+    <!-- Publicaciones -->
+    <h5 class="fw-bold mb-3">Mis publicaciones</h5>
 
     @if (cargando()) {
       <div class="text-center py-3">
@@ -147,6 +147,25 @@
       <div class="text-center text-muted py-3">
         Todavía no publicaste nada.
       </div>
+    }
+
+    <!-- Paginación -->
+    @if (totalPaginas() > 1) {
+      <nav class="my-4">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" [class.disabled]="paginaActual() === 1">
+            <button class="page-link" (click)="paginaAnterior()">«</button>
+          </li>
+          @for (p of paginas(); track p) {
+            <li class="page-item" [class.active]="p === paginaActual()">
+              <button class="page-link" (click)="irAPagina(p)">{{ p }}</button>
+            </li>
+          }
+          <li class="page-item" [class.disabled]="paginaActual() === totalPaginas()">
+            <button class="page-link" (click)="paginaSiguiente()">»</button>
+          </li>
+        </ul>
+      </nav>
     }
 
   } @else {

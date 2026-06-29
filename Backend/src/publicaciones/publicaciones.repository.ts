@@ -30,23 +30,43 @@ export class PublicacionesRepository {
   async listar(query: ListarPublicacionesDto): Promise<PublicacionDocument[]> {
     const filtro: any = { activo: true };
 
-    // filtrar por usuario si se especifica
     if (query.usuarioId) {
       filtro.usuario = query.usuarioId;
     }
 
-    // ordenamiento: por fecha o por cantidad de likes
-    const ordenamiento: any =
-      query.ordenarPor === 'likes'
-        ? { likesCount: -1, createdAt: -1 }
-        : { createdAt: -1 };
+    if (query.ordenarPor === 'likes') {
+      const ids = await this.modelo
+        .aggregate([
+          { $match: filtro },
+          { $addFields: { likesCount: { $size: { $ifNull: ['$likes', []] } } } },
+          { $sort: { likesCount: -1, createdAt: -1 } },
+          { $skip: Number(query.offset ?? 0) },
+          { $limit: Number(query.limit ?? 10) },
+          { $project: { _id: 1 } },
+        ])
+        .exec();
+
+      const idList = ids.map((d: any) => d._id);
+
+      const docs = await this.modelo
+        .find({ _id: { $in: idList } })
+        .populate('usuario', 'nombre apellido nombreUsuario fotoPerfil')
+        .lean()
+        .exec();
+
+      const orden = new Map(idList.map((id: any, i: number) => [id.toString(), i]));
+      return [...docs].sort(
+        (a: any, b: any) =>
+          (orden.get(a._id.toString()) ?? 0) - (orden.get(b._id.toString()) ?? 0),
+      ) as any;
+    }
 
     return this.modelo
       .find(filtro)
       .populate('usuario', 'nombre apellido nombreUsuario fotoPerfil')
-      .sort(ordenamiento)
-      .skip(query.offset ?? 0)
-      .limit(query.limit ?? 10)
+      .sort({ createdAt: -1 })
+      .skip(Number(query.offset ?? 0))
+      .limit(Number(query.limit ?? 10))
       .lean()
       .exec() as any;
   }
