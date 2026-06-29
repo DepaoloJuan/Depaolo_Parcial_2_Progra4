@@ -1,15 +1,16 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { Usuario } from '../models/usuario.model';
 import { environment } from '../../environments/environment';
 
-/**
- * Servicio de autenticación.
- * Gestiona el estado de la sesión con una Signal reactiva y lo persiste en localStorage
- * para que sobreviva recargas de página.
- */
+// Tipamos la respuesta del backend que ahora devuelve token + usuario
+interface RespuestaAuth {
+  token: string;
+  usuario: Usuario;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -18,46 +19,32 @@ export class AuthService {
   private router = inject(Router);
 
   private readonly USUARIO_KEY = 'usuario';
+  private readonly TOKEN_KEY = 'token'; // ← nuevo
 
-  /**
-   * Signal privada con el usuario logueado.
-   * Se inicializa leyendo localStorage para restaurar la sesión al cargar la app.
-   * Los componentes no pueden modificarla directamente; solo leen `usuarioActual`.
-   */
   private _usuarioActual = signal<Usuario | null>(this.cargarUsuarioStorage());
-
-  /** Vista de solo lectura de la signal, expuesta a los componentes. */
   usuarioActual = this._usuarioActual.asReadonly();
 
-  /**
-   * Envía los datos de registro (FormData con imagen opcional) al backend.
-   * Navega a /login tras el registro exitoso para que el usuario inicie sesión.
-   */
-  registro(datos: FormData): Observable<Usuario> {
+  registro(datos: FormData): Observable<RespuestaAuth> {
     return this.http
-      .post<Usuario>(`${environment.apiUrl}/autenticacion/registro`, datos)
+      .post<RespuestaAuth>(`${environment.apiUrl}/autenticacion/registro`, datos)
       .pipe(
-        tap(() => {
-          this.router.navigate(['/login']);
+        tap((respuesta) => {
+          // Guardamos token y usuario al registrarse — el usuario ya queda logueado
+          this.guardarSesion(respuesta.token, respuesta.usuario);
+          this.router.navigate(['/publicaciones']);
         }),
       );
   }
 
-  /**
-   * Valida credenciales contra el backend y persiste la sesión.
-   * tap() ejecuta efectos secundarios sin transformar el Observable:
-   * guarda en localStorage, actualiza la signal y navega al feed.
-   */
-  login(identificador: string, contrasenia: string): Observable<Usuario> {
+  login(identificador: string, contrasenia: string): Observable<RespuestaAuth> {
     return this.http
-      .post<Usuario>(`${environment.apiUrl}/autenticacion/login`, {
+      .post<RespuestaAuth>(`${environment.apiUrl}/autenticacion/login`, {
         identificador,
         contrasenia,
       })
       .pipe(
-        tap((usuario) => {
-          localStorage.setItem(this.USUARIO_KEY, JSON.stringify(usuario));
-          this._usuarioActual.set(usuario);
+        tap((respuesta) => {
+          this.guardarSesion(respuesta.token, respuesta.usuario);
           this.router.navigate(['/publicaciones']);
         }),
       );
@@ -68,29 +55,78 @@ export class AuthService {
    * para que todos los componentes que leen `usuarioActual` se actualicen reactivamente.
    */
   actualizarPerfil(id: string, datos: FormData): Observable<Usuario> {
+    return this.http.put<Usuario>(`${environment.apiUrl}/usuarios/${id}`, datos).pipe(
+      tap((usuario) => {
+        localStorage.setItem(this.USUARIO_KEY, JSON.stringify(usuario));
+        this._usuarioActual.set(usuario);
+      }),
+    );
+  }
+
+  // Valida el token contra el backend — lo usará el spinner al arrancar la app
+  autorizar(): Observable<Usuario> {
+    const token = this.getToken();
+    return this.http.post<Usuario>(`${environment.apiUrl}/autenticacion/autorizar`, { token });
+  }
+
+  // Pide un token nuevo al backend — lo usará el modal de sesión
+  refrescar(): Observable<RespuestaAuth> {
+    const token = this.getToken();
     return this.http
-      .put<Usuario>(`${environment.apiUrl}/usuarios/${id}`, datos)
+      .post<RespuestaAuth>(`${environment.apiUrl}/autenticacion/refrescar`, { token })
       .pipe(
-        tap((usuario) => {
-          localStorage.setItem(this.USUARIO_KEY, JSON.stringify(usuario));
-          this._usuarioActual.set(usuario);
+        tap((respuesta) => {
+          this.guardarSesion(respuesta.token, respuesta.usuario);
         }),
       );
   }
 
-  /** Limpia la sesión local y redirige al login. */
+  // --- Contador de sesión ---
+  private contadorTimer: any = null;
+
+  iniciarContador(): void {
+    this.detenerContador();
+
+    this.contadorTimer = setTimeout(() => {
+      this.mostrarModalSesion();
+    }, 10 * 60 * 1000); // 10 minutos
+  }
+
+  detenerContador(): void {
+    if (this.contadorTimer) {
+      clearTimeout(this.contadorTimer);
+      this.contadorTimer = null;
+    }
+  }
+
+  private mostrarModalSesion(): void {
+    window.dispatchEvent(new CustomEvent('sesion-por-vencer'));
+  }
+
   logout(): void {
+    this.detenerContador();
     localStorage.removeItem(this.USUARIO_KEY);
+    localStorage.removeItem(this.TOKEN_KEY);
     this._usuarioActual.set(null);
     this.router.navigate(['/login']);
+  }
+
+  // El interceptor lo llama para agregar el token en cada request
+  getToken(): string | null {
+    return localStorage.getItem(this.TOKEN_KEY);
   }
 
   estaLogueado(): boolean {
     return this._usuarioActual() !== null;
   }
 
-  esAdmin(): boolean {
-    return this._usuarioActual()?.perfil === 'administrador';
+  esAdmin = computed(() => this._usuarioActual()?.perfil === 'administrador');
+
+  // Centraliza el guardado de sesión — un solo lugar para token + usuario
+  private guardarSesion(token: string, usuario: Usuario): void {
+    localStorage.setItem(this.TOKEN_KEY, token);
+    localStorage.setItem(this.USUARIO_KEY, JSON.stringify(usuario));
+    this._usuarioActual.set(usuario);
   }
 
   /**

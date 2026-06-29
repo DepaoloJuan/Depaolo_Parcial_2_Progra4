@@ -18,6 +18,7 @@ export class Navbar {
 
   /** Signal de solo lectura; el template la lee para mostrar nombre de usuario y foto. */
   usuarioActual = this.authService.usuarioActual;
+  esAdmin = this.authService.esAdmin;
 
   logout(): void {
     this.authService.logout();

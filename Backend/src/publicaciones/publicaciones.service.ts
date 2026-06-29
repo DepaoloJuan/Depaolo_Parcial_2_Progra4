@@ -135,7 +135,14 @@ export class PublicacionesService {
     return { mensaje: 'Like eliminado correctamente' };
   }
 
-  /** Limpia _id y __v del documento antes de devolverlo; incluye el virtual "id". */
+  async obtenerPorId(id: string) {
+    const publicacion = await this.publicacionesRepository.buscarPorId(id);
+    if (!publicacion) {
+      throw new NotFoundException('Publicación no encontrada');
+    }
+    return publicacion;
+  }
+
   private sanitizar(publicacion: any) {
     const obj = publicacion.toObject
       ? publicacion.toObject({ virtuals: true })

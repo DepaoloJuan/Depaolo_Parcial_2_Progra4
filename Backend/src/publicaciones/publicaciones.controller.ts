@@ -50,11 +50,13 @@ export class PublicacionesController {
     return this.publicacionesService.listar(query);
   }
 
-  /**
-   * DELETE /api/v1/publicaciones/:id
-   * Baja lógica. La autorización se pasa como query params porque no hay JWT aún:
-   *   ?usuarioId=<id>&perfil=usuario|administrador
-   */
+  // GET /api/v1/publicaciones/:id
+  @Get(':id')
+  obtenerPorId(@Param('id') id: string) {
+    return this.publicacionesService.obtenerPorId(id);
+  }
+
+  // DELETE /api/v1/publicaciones/:id
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   eliminar(
