@@ -68,9 +68,13 @@ export class AuthService {
   // Pide un token nuevo al backend — lo usará el modal de sesión
   refrescar(): Observable<RespuestaAuth> {
     const token = this.getToken();
-    return this.http.post<RespuestaAuth>(`${environment.apiUrl}/autenticacion/refrescar`, {
-      token,
-    });
+    return this.http
+      .post<RespuestaAuth>(`${environment.apiUrl}/autenticacion/refrescar`, { token })
+      .pipe(
+        tap((respuesta) => {
+          this.guardarSesion(respuesta.token, respuesta.usuario);
+        }),
+      );
   }
 
   // --- Contador de sesión ---
