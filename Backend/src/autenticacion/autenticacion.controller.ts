@@ -13,6 +13,10 @@ import { LoginDto } from './dto/login.dto';
 import { multerConfig } from '../cloudinary/multer.config';
 import { Publica } from './decorators/public.decorator';
 
+/**
+ * Controlador de autenticación.
+ * Gestiona el registro de nuevos usuarios y el login.
+ */
 @Controller('autenticacion')
 export class AutenticacionController {
   constructor(private readonly autenticacionService: AutenticacionService) {}

@@ -9,21 +9,26 @@ import { ComentariosModule } from './comentarios/comentarios.module';
 import { JwtAuthGuard } from './autenticacion/guards/jwt-auth.guard';
 import { RolesGuard } from './autenticacion/guards/roles.guard';
 
+/**
+ * Módulo raíz de la aplicación.
+ * Registra la configuración global, la conexión a MongoDB y los módulos de negocio.
+ */
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true,
+      isGlobal: true,   // no hace falta importarlo en cada módulo
       envFilePath: '.env',
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         uri: configService.get<string>('MONGO_URI'),
+        // connectionFactory permite enganchar eventos del ciclo de vida de la conexión
         connectionFactory: (connection) => {
           connection.on('connected', () =>
             console.log('✅ MongoDB conectado exitosamente'),
           );
-          connection.on('error', (err) =>
+          connection.on('error', (err: Error) =>
             console.log('❌ Error en conexión MongoDB:', err),
           );
           return connection;

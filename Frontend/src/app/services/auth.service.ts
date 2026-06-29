@@ -50,6 +50,10 @@ export class AuthService {
       );
   }
 
+  /**
+   * Actualiza el perfil del usuario logueado y sincroniza la signal y el localStorage
+   * para que todos los componentes que leen `usuarioActual` se actualicen reactivamente.
+   */
   actualizarPerfil(id: string, datos: FormData): Observable<Usuario> {
     return this.http.put<Usuario>(`${environment.apiUrl}/usuarios/${id}`, datos).pipe(
       tap((usuario) => {
@@ -125,6 +129,10 @@ export class AuthService {
     this._usuarioActual.set(usuario);
   }
 
+  /**
+   * Restaura el usuario desde localStorage al inicializar el servicio.
+   * Permite que la sesión persista entre recargas sin hacer un request al backend.
+   */
   private cargarUsuarioStorage(): Usuario | null {
     const usuario = localStorage.getItem(this.USUARIO_KEY);
     return usuario ? JSON.parse(usuario) : null;
