@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Navbar } from '../../components/navbar/navbar';
@@ -20,7 +20,13 @@ export class MiPerfil implements OnInit {
 
   usuarioActual = this.authService.usuarioActual;
   publicaciones = signal<Publicacion[]>([]);
+  total = signal(0);
+  paginaActual = signal(1);
+  readonly limit = 3;
   cargando = signal(false);
+
+  totalPaginas = computed(() => Math.ceil(this.total() / this.limit));
+  paginas = computed(() => Array.from({ length: this.totalPaginas() }, (_, i) => i + 1));
   guardando = signal(false);
   errorEditar = signal<string | null>(null);
   exitoEditar = signal(false);
@@ -54,13 +60,29 @@ export class MiPerfil implements OnInit {
 
   private cargarPublicaciones(usuarioId: string): void {
     this.cargando.set(true);
-    this.publicacionesService.listar(0, 3, 'fecha', usuarioId).subscribe({
+    const offset = (this.paginaActual() - 1) * this.limit;
+    this.publicacionesService.listar(offset, this.limit, 'fecha', usuarioId).subscribe({
       next: (resp) => {
         this.publicaciones.set(resp.data);
+        this.total.set(resp.total);
         this.cargando.set(false);
       },
       error: () => this.cargando.set(false),
     });
+  }
+
+  irAPagina(n: number): void {
+    this.paginaActual.set(n);
+    const usuario = this.usuarioActual();
+    if (usuario) this.cargarPublicaciones(usuario.id);
+  }
+
+  paginaAnterior(): void {
+    if (this.paginaActual() > 1) this.irAPagina(this.paginaActual() - 1);
+  }
+
+  paginaSiguiente(): void {
+    if (this.paginaActual() < this.totalPaginas()) this.irAPagina(this.paginaActual() + 1);
   }
 
   onImagenSeleccionada(evento: Event): void {
@@ -148,6 +170,7 @@ export class MiPerfil implements OnInit {
         this.formularioPublicacion.reset();
         this.imagenPublicacion.set(null);
         this.mostrarFormulario.set(false);
+        this.paginaActual.set(1);
         this.cargarPublicaciones(usuario.id);
       },
       error: (err) => {
@@ -157,8 +180,13 @@ export class MiPerfil implements OnInit {
     });
   }
 
-  onPublicacionEliminada(id: string): void {
-    this.publicaciones.update((prev) => prev.filter((p) => p.id !== id));
+  onPublicacionEliminada(_id: string): void {
+    const usuario = this.usuarioActual();
+    if (!usuario) return;
+    if (this.publicaciones().length === 1 && this.paginaActual() > 1) {
+      this.paginaActual.update((v) => v - 1);
+    }
+    this.cargarPublicaciones(usuario.id);
   }
 
   onLikeActualizado(): void {
