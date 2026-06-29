@@ -19,6 +19,10 @@ import { CrearUsuarioDto } from './dto/crear-usuario.dto';
 import { multerConfig } from '../cloudinary/multer.config';
 import { Roles } from '../autenticacion/decorators/roles.decorator';
 
+/**
+ * Controlador de usuarios.
+ * Expone los endpoints de gestión de perfil (edición de datos e imagen).
+ */
 @Controller('usuarios')
 export class UsuariosController {
   constructor(

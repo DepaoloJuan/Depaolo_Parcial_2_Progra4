@@ -11,6 +11,11 @@ const adminGuard = () => {
   return false;
 };
 
+/**
+ * Configuración de rutas de la aplicación.
+ * Todas las páginas usan lazy loading (loadComponent) para que Angular genere
+ * un chunk separado por ruta y reduzca el bundle inicial.
+ */
 export const routes: Routes = [
   {
     path: '',

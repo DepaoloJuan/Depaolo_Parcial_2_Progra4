@@ -18,6 +18,7 @@ export class Publicaciones implements OnInit {
 
   usuarioActual = this.authService.usuarioActual;
 
+  // --- Estado del listado ---
   publicaciones = signal<Publicacion[]>([]);
   total = signal(0);
   paginaActual = signal(1);
@@ -71,6 +72,7 @@ export class Publicaciones implements OnInit {
     if (this.paginaActual() < this.totalPaginas()) this.irAPagina(this.paginaActual() + 1);
   }
 
+  /** Cambia el criterio de ordenamiento y recarga desde el principio. */
   cambiarOrden(orden: 'fecha' | 'likes'): void {
     this.ordenarPor.set(orden);
     this.paginaActual.set(1);
@@ -134,7 +136,7 @@ export class Publicaciones implements OnInit {
   }
 
   onLikeActualizado(_id: string): void {
-    // no recargamos — el componente tarjeta ya actualizó su estado local
+    // No se recarga la lista: TarjetaPublicacion actualiza su propio estado local de likes
   }
 
   resetFormulario(): void {

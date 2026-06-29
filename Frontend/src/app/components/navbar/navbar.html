@@ -66,9 +66,7 @@
           </li>
 
         } @else {
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/login">Iniciar sesión</a>
-          </li>
+          <div class="nav-inicial">{{ usuarioActual()?.nombre?.charAt(0) }}</div>
         }
 
       </ul>

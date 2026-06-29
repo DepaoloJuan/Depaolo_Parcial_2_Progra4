@@ -5,8 +5,14 @@ import { routes } from './app.routes';
 import { authInterceptor } from './interceptors/auth.interceptor';
 import { provideServiceWorker } from '@angular/service-worker';
 
+/**
+ * Configuración raíz de la aplicación Angular (equivalente al AppModule clásico).
+ * Se usa el patrón standalone con providers funcionales en lugar de NgModules.
+ */
 export const appConfig: ApplicationConfig = {
   providers: [
+    // eventCoalescing: agrupa múltiples eventos del DOM en un solo ciclo de detección
+    // de cambios, mejorando el rendimiento en interacciones rápidas
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     // withInterceptors registra los interceptores funcionales en orden

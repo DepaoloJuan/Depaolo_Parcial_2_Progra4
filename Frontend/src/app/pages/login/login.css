@@ -1,3 +1,90 @@
-.min-vh-100 {
-  background-color: #f5f5f5;
+.login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #1877f2;
+  padding: 20px;
+}
+
+.login-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  width: 100%;
+  max-width: 396px;
+  box-shadow: 0 2px 4px rgba(0,0,0,.1), 0 8px 16px rgba(0,0,0,.1);
+}
+
+.login-card h1 {
+  color: #1877f2;
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.login-card .subtitulo {
+  text-align: center;
+  color: #606770;
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+}
+
+.btn-facebook {
+  background-color: #1877f2;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  width: 100%;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-facebook:hover {
+  background-color: #166fe5;
+}
+
+.btn-facebook:disabled {
+  background-color: #9abef7;
+  cursor: not-allowed;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid #dadde1;
+  margin: 20px 0;
+}
+
+.btn-registro {
+  background-color: #42b72a;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 24px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: block;
+  margin: 0 auto;
+}
+
+.btn-registro:hover {
+  background-color: #36a420;
+}
+
+.login-card input {
+  background-color: #f5f6f7 !important;
+  border: 1px solid #dddfe2;
+  border-radius: 6px;
+}
+
+.login-card input:focus {
+  background-color: #fff !important;
+  border-color: #1877f2;
+  box-shadow: 0 0 0 2px rgba(24,119,242,0.2);
 }

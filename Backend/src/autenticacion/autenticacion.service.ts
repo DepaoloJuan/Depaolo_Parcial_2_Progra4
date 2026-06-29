@@ -5,6 +5,10 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CrearUsuarioDto } from '../usuarios/dto/crear-usuario.dto';
 import { LoginDto } from './dto/login.dto';
 
+/**
+ * Servicio de autenticación.
+ * Coordina el registro (con carga de imagen) y el login (validación de credenciales).
+ */
 @Injectable()
 export class AutenticacionService {
   constructor(
