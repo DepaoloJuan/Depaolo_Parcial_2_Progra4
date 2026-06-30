@@ -7,12 +7,11 @@ import { PublicacionesService } from '../../services/publicaciones.service';
 import { ComentariosService, Comentario } from '../../services/comentarios.service';
 import { AuthService } from '../../services/auth.service';
 import { Publicacion } from '../../models/publicacion.model';
-import { PrimeraMayusculaPipe } from '../../pipes/primera-mayuscula.pipe';
 
 @Component({
   selector: 'app-detalle-publicacion',
   standalone: true,
-  imports: [Navbar, DatePipe, ReactiveFormsModule, PrimeraMayusculaPipe],
+  imports: [Navbar, DatePipe, ReactiveFormsModule],
   templateUrl: './detalle-publicacion.html',
   styleUrl: './detalle-publicacion.css',
 })
