@@ -108,7 +108,6 @@ export class Publicaciones implements OnInit {
     const formData = new FormData();
     formData.append('titulo', this.formulario.value.titulo);
     formData.append('descripcion', this.formulario.value.descripcion);
-    formData.append('usuarioId', usuario.id);
     if (this.imagenSeleccionada()) {
       formData.append('imagen', this.imagenSeleccionada()!);
     }

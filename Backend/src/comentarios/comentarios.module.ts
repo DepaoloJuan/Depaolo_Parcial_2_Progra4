@@ -7,13 +7,13 @@ import { Comentario, ComentarioSchema } from './schemas/comentario.schema';
 
 @Module({
   imports: [
-    // Registramos el schema de Comentario para que Mongoose lo conozca
+    // Registramos el schema para que @InjectModel(Comentario.name) funcione en el repositorio
     MongooseModule.forFeature([
       { name: Comentario.name, schema: ComentarioSchema },
     ]),
   ],
   controllers: [ComentariosController],
   providers: [ComentariosService, ComentariosRepository],
-  exports: [ComentariosService], // lo exportamos por si PublicacionesModule lo necesita
+  exports: [ComentariosService],
 })
 export class ComentariosModule {}

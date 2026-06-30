@@ -16,16 +16,21 @@ export class PublicacionesRepository {
     private modelo: Model<PublicacionDocument>,
   ) {}
 
-  /** Crea una nueva publicación con los datos del DTO y las URLs de Cloudinary. */
+  /**
+   * Crea una nueva publicación con los datos del DTO y las URLs de Cloudinary.
+   * usuarioId llega como parámetro separado — el DTO ya no lo incluye para evitar
+   * que el cliente pueda falsificar el autor de la publicación.
+   */
   async crear(
     dto: CrearPublicacionDto,
+    usuarioId: string,
     imagenUrl: string,
     imagenPublicId: string,
   ): Promise<PublicacionDocument> {
     const publicacion = new this.modelo({
       titulo: dto.titulo,
       descripcion: dto.descripcion,
-      usuario: new Types.ObjectId(dto.usuarioId),
+      usuario: new Types.ObjectId(usuarioId),
       imagenUrl,
       imagenPublicId,
     });

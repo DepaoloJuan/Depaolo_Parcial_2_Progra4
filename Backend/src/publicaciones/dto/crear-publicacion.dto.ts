@@ -3,6 +3,8 @@ import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
 /**
  * DTO de validación para crear una nueva publicación.
  * Se recibe como multipart/form-data junto con la imagen opcional.
+ * usuarioId NO está en el DTO — viene del token JWT y el controller lo pasa
+ * al service como parámetro separado, nunca del body del cliente.
  */
 export class CrearPublicacionDto {
   @IsNotEmpty({ message: 'El título es obligatorio' })
@@ -14,9 +16,4 @@ export class CrearPublicacionDto {
   @IsString()
   @MaxLength(500)
   descripcion!: string;
-
-  /** ID de MongoDB del usuario autor de la publicación. */
-  @IsNotEmpty({ message: 'El ID del usuario es obligatorio' })
-  @IsString()
-  usuarioId!: string;
 }

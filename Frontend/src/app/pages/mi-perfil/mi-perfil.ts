@@ -182,7 +182,6 @@ export class MiPerfil implements OnInit {
     const formData = new FormData();
     formData.append('titulo', this.formularioPublicacion.value.titulo);
     formData.append('descripcion', this.formularioPublicacion.value.descripcion);
-    formData.append('usuarioId', usuario.id);
     if (this.imagenPublicacion()) {
       formData.append('imagen', this.imagenPublicacion()!);
     }

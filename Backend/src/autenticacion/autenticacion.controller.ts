@@ -13,18 +13,14 @@ import { LoginDto } from './dto/login.dto';
 import { multerConfig } from '../cloudinary/multer.config';
 import { Publica } from './decorators/public.decorator';
 
-/**
- * Controlador de autenticación.
- * Gestiona el registro de nuevos usuarios y el login.
- */
 @Controller('autenticacion')
 export class AutenticacionController {
   constructor(private readonly autenticacionService: AutenticacionService) {}
 
-  // REGISTRO — recibe los datos del usuario + foto de perfil opcional
+  // @Publica() es necesario porque el JwtAuthGuard global bloquearía estas rutas sin token
   @Publica()
   @Post('registro')
-  @UseInterceptors(FileInterceptor('fotoPerfil', multerConfig))
+  @UseInterceptors(FileInterceptor('fotoPerfil', multerConfig)) // acepta multipart/form-data por la imagen
   async registrar(
     @Body() dto: CrearUsuarioDto,
     @UploadedFile() fotoPerfil?: Express.Multer.File,
@@ -32,31 +28,25 @@ export class AutenticacionController {
     return this.autenticacionService.registrar(dto, fotoPerfil);
   }
 
-  // LOGIN — recibe identificador (correo o nombreUsuario) + contraseña
   @Publica()
   @Post('login')
   async login(@Body() dto: LoginDto) {
     return this.autenticacionService.login(dto);
   }
 
-  // AUTORIZAR — el frontend manda el token, nosotros lo validamos
-  // Si es válido devolvemos los datos del usuario, si no → 401
+  // El frontend llama a esta ruta al iniciar la app (página cargando) para validar el token guardado
   @Publica()
   @Post('autorizar')
   async autorizar(@Body('token') token: string) {
-    if (!token) {
-      throw new UnauthorizedException('Token no proporcionado');
-    }
+    if (!token) throw new UnauthorizedException('Token no proporcionado');
     return this.autenticacionService.autorizar(token);
   }
 
-  // REFRESCAR — el frontend manda el token actual, nosotros devolvemos uno nuevo
+  // El frontend llama a esta ruta cuando el usuario acepta extender la sesión en el modal
   @Publica()
   @Post('refrescar')
   async refrescar(@Body('token') token: string) {
-    if (!token) {
-      throw new UnauthorizedException('Token no proporcionado');
-    }
+    if (!token) throw new UnauthorizedException('Token no proporcionado');
     return this.autenticacionService.refrescar(token);
   }
 }
