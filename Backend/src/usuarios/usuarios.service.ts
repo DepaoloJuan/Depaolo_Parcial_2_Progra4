@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException  } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { UsuariosRepository } from './usuarios.repository';
 import { CrearUsuarioDto } from './dto/crear-usuario.dto';
@@ -82,23 +82,6 @@ export class UsuariosService {
   async buscarPorId(id: string) {
     const usuario = await this.usuariosRepository.buscarPorId(id);
     if (!usuario) return null;
-    return this.sanitizarUsuario(usuario);
-  }
-
-  async listar() {
-    const usuarios = await this.usuariosRepository.listar();
-    return usuarios.map((u) => this.sanitizarUsuario(u));
-  }
-
-  async deshabilitar(id: string) {
-    const usuario = await this.usuariosRepository.deshabilitar(id);
-    if (!usuario) throw new NotFoundException('Usuario no encontrado');
-    return this.sanitizarUsuario(usuario);
-  }
-
-  async rehabilitar(id: string) {
-    const usuario = await this.usuariosRepository.rehabilitar(id);
-    if (!usuario) throw new NotFoundException('Usuario no encontrado');
     return this.sanitizarUsuario(usuario);
   }
 

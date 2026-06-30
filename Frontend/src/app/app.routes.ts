@@ -19,19 +19,6 @@ const noAuthGuard = () => {
   return false;
 };
 
-const adminGuard = () => {
-  const authService = inject(AuthService);
-  const router = inject(Router);
-  if (authService.esAdmin()) return true;
-  router.navigate(['/publicaciones']);
-  return false;
-};
-
-/**
- * Configuración de rutas de la aplicación.
- * Todas las páginas usan lazy loading (loadComponent) para que Angular genere
- * un chunk separado por ruta y reduzca el bundle inicial.
- */
 export const routes: Routes = [
   {
     path: '',
@@ -67,27 +54,6 @@ export const routes: Routes = [
           import('./pages/detalle-publicacion/detalle-publicacion').then(
             (m) => m.DetallePublicacion,
           ),
-      },
-      {
-        path: 'dashboard',
-        canActivate: [adminGuard],
-        children: [
-          {
-            path: 'usuarios',
-            loadComponent: () =>
-              import('./pages/dashboard/usuarios/usuarios').then((m) => m.Usuarios),
-          },
-          {
-            path: 'estadisticas',
-            loadComponent: () =>
-              import('./pages/dashboard/estadisticas/estadisticas').then((m) => m.Estadisticas),
-          },
-          {
-            path: '',
-            redirectTo: 'usuarios',
-            pathMatch: 'full',
-          },
-        ],
       },
     ],
   },
