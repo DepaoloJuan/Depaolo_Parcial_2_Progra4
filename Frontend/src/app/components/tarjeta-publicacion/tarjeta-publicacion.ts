@@ -54,15 +54,11 @@ export class TarjetaPublicacion implements OnInit {
 
   /**
    * Computed: devuelve true si el usuario puede eliminar esta publicación.
-   * Puede hacerlo si es el autor o si tiene rol administrador.
    */
   puedeEliminar = computed(() => {
     const usuario = this.usuarioActual();
     if (!usuario) return false;
-    return (
-      usuario.id === this.publicacion.usuario.id ||
-      usuario.perfil === 'administrador'
-    );
+    return usuario.id === this.publicacion.usuario.id;
   });
 
   /**
