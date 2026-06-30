@@ -15,8 +15,9 @@ export class CrearPublicacionDto {
   @MaxLength(500)
   descripcion!: string;
 
-  /** ID de MongoDB del usuario autor de la publicación. */
-  @IsNotEmpty({ message: 'El ID del usuario es obligatorio' })
-  @IsString()
-  usuarioId!: string;
+  /**
+   * No se valida ni se espera del cliente — el controller lo inyecta desde el token JWT
+   * usando @UsuarioActual('usuarioId'). Cualquier valor enviado en el body es descartado.
+   */
+  usuarioId?: string;
 }
