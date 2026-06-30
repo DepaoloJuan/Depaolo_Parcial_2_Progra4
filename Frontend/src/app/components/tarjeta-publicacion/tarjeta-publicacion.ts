@@ -72,8 +72,8 @@ export class TarjetaPublicacion implements OnInit {
     if (!usuario) return;
 
     const accion = this.yaLikeo()
-      ? this.publicacionesService.quitarLike(this.publicacion.id, usuario.id)
-      : this.publicacionesService.darLike(this.publicacion.id, usuario.id);
+      ? this.publicacionesService.quitarLike(this.publicacion.id)
+      : this.publicacionesService.darLike(this.publicacion.id);
 
     accion.subscribe({
       next: () => {
@@ -99,7 +99,7 @@ export class TarjetaPublicacion implements OnInit {
     if (!usuario) return;
 
     this.publicacionesService
-      .eliminar(this.publicacion.id, usuario.id, usuario.perfil)
+      .eliminar(this.publicacion.id)
       .subscribe({
         next: () => this.publicacionEliminada.emit(this.publicacion.id),
         error: (err) => console.error(err),
