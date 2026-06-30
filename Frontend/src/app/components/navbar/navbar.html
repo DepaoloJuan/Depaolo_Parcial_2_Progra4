@@ -1,44 +1,67 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
   <div class="container">
-    <a class="navbar-brand fw-bold" routerLink="/publicaciones">RedSocial</a>
+
+    <!-- Brand: logo + nombre -->
+    <a class="navbar-brand fw-bold d-flex align-items-center gap-2" routerLink="/publicaciones">
+      <img src="favicon-32x32.png" width="28" height="28" />
+      RedSocial
+    </a>
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
+
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/publicaciones" routerLinkActive="active">Publicaciones</a>
-        </li>
-      </ul>
-      <ul class="navbar-nav ms-auto">
+      <ul class="navbar-nav ms-auto align-items-center">
+
         @if (usuarioActual()) {
-          @if (esAdmin()) {
-            <li class="nav-item">
-              <a class="nav-link" routerLink="/dashboard/usuarios" routerLinkActive="active">
-                Dashboard
-              </a>
-            </li>
-          }
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/mi-perfil" routerLinkActive="active">
+          <!-- Dropdown avatar -->
+          <li class="nav-item dropdown">
+            <button
+              class="btn p-0 border-2 border-white rounded-circle"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+              style="outline: none; box-shadow: none;"
+            >
               @if (usuarioActual()?.fotoPerfil) {
                 <img
                   [src]="usuarioActual()?.fotoPerfil"
-                  class="rounded-circle me-1"
-                  style="width: 28px; height: 28px; object-fit: cover;"
+                  class="rounded-circle"
+                  style="width: 38px; height: 38px; object-fit: cover; display: block;"
                 />
+              } @else {
+                <div
+                  class="rounded-circle bg-white d-flex align-items-center justify-content-center fw-bold text-primary"
+                  style="width: 38px; height: 38px; font-size: 1.1rem;"
+                >
+                  {{ usuarioActual()?.nombre?.charAt(0) }}
+                </div>
               }
-              Mi Perfil
-            </a>
+            </button>
+
+            <ul class="dropdown-menu dropdown-menu-end mt-2 shadow">
+              <li class="px-3 py-1 text-muted" style="font-size: 0.8rem;">
+                {{ usuarioActual()?.nombre }} {{ usuarioActual()?.apellido }}
+              </li>
+              <li><hr class="dropdown-divider my-1"></li>
+              <li>
+                <a class="dropdown-item d-flex align-items-center gap-2" routerLink="/mi-perfil">
+                  <i class="bi bi-person-circle"></i> Mi Perfil
+                </a>
+              </li>
+<li><hr class="dropdown-divider my-1"></li>
+              <li>
+                <button class="dropdown-item d-flex align-items-center gap-2 text-danger" (click)="logout()">
+                  <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                </button>
+              </li>
+            </ul>
           </li>
-          <li class="nav-item">
-            <button class="btn btn-outline-light btn-sm ms-2" (click)="logout()">Cerrar sesión</button>
-          </li>
+
         } @else {
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/login">Iniciar sesión</a>
-          </li>
+          <div class="nav-inicial">{{ usuarioActual()?.nombre?.charAt(0) }}</div>
         }
+
       </ul>
     </div>
   </div>

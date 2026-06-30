@@ -1,15 +1,13 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Navbar } from '../../components/navbar/navbar';
 import { TarjetaPublicacion } from '../../components/tarjeta-publicacion/tarjeta-publicacion';
 import { PublicacionesService } from '../../services/publicaciones.service';
 import { AuthService } from '../../services/auth.service';
 import { Publicacion } from '../../models/publicacion.model';
-import { ClickFueraDirective } from '../../directives/click-fuera.directive';
-
 @Component({
   selector: 'app-publicaciones',
-  imports: [Navbar, TarjetaPublicacion, ReactiveFormsModule, ClickFueraDirective],
+  imports: [Navbar, TarjetaPublicacion, ReactiveFormsModule],
   templateUrl: './publicaciones.html',
   styleUrl: './publicaciones.css',
 })
@@ -20,18 +18,20 @@ export class Publicaciones implements OnInit {
 
   usuarioActual = this.authService.usuarioActual;
 
+  // --- Estado del listado ---
   publicaciones = signal<Publicacion[]>([]);
   total = signal(0);
-  offset = signal(0);
+  paginaActual = signal(1);
   limit = 10;
   ordenarPor = signal<'fecha' | 'likes'>('fecha');
   cargando = signal(false);
-  hayMas = signal(false);
 
-  // formulario crear publicación
-  mostrarFormulario = signal(false);
+  totalPaginas = computed(() => Math.ceil(this.total() / this.limit));
+  paginas = computed(() => Array.from({ length: this.totalPaginas() }, (_, i) => i + 1));
+
   formulario: FormGroup = this.buildForm();
   imagenSeleccionada = signal<File | null>(null);
+  previewUrl = signal<string | null>(null);
   creando = signal(false);
   errorCrear = signal<string | null>(null);
 
@@ -46,40 +46,55 @@ export class Publicaciones implements OnInit {
     });
   }
 
-  cargarPublicaciones(reiniciar = true): void {
-    if (reiniciar) {
-      this.offset.set(0);
-      this.publicaciones.set([]);
-    }
-
+  cargarPublicaciones(): void {
     this.cargando.set(true);
-
-    this.publicacionesService.listar(this.offset(), this.limit, this.ordenarPor()).subscribe({
+    const offset = (this.paginaActual() - 1) * this.limit;
+    this.publicacionesService.listar(offset, this.limit, this.ordenarPor()).subscribe({
       next: (resp) => {
-        this.publicaciones.update((prev) => [...prev, ...resp.data]);
+        this.publicaciones.set(resp.data);
         this.total.set(resp.total);
-        this.hayMas.set(this.publicaciones().length < resp.total);
         this.cargando.set(false);
       },
       error: () => this.cargando.set(false),
     });
   }
 
-  cargarMas(): void {
-    this.offset.update((v) => v + this.limit);
-    this.cargarPublicaciones(false);
+  irAPagina(n: number): void {
+    this.paginaActual.set(n);
+    this.cargarPublicaciones();
   }
 
+  paginaAnterior(): void {
+    if (this.paginaActual() > 1) this.irAPagina(this.paginaActual() - 1);
+  }
+
+  paginaSiguiente(): void {
+    if (this.paginaActual() < this.totalPaginas()) this.irAPagina(this.paginaActual() + 1);
+  }
+
+  /** Cambia el criterio de ordenamiento y recarga desde el principio. */
   cambiarOrden(orden: 'fecha' | 'likes'): void {
     this.ordenarPor.set(orden);
+    this.paginaActual.set(1);
     this.cargarPublicaciones();
   }
 
   onImagenSeleccionada(evento: Event): void {
     const input = evento.target as HTMLInputElement;
     if (input.files?.length) {
-      this.imagenSeleccionada.set(input.files[0]);
+      const file = input.files[0];
+      this.imagenSeleccionada.set(file);
+      this.previewUrl.set(URL.createObjectURL(file));
     }
+  }
+
+  quitarImagen(): void {
+    this.imagenSeleccionada.set(null);
+    this.previewUrl.set(null);
+  }
+
+  abrirSelectorImagen(): void {
+    document.getElementById('fileInputPublicacion')?.click();
   }
 
   onCrearPublicacion(): void {
@@ -93,7 +108,6 @@ export class Publicaciones implements OnInit {
     const formData = new FormData();
     formData.append('titulo', this.formulario.value.titulo);
     formData.append('descripcion', this.formulario.value.descripcion);
-    formData.append('usuarioId', usuario.id);
     if (this.imagenSeleccionada()) {
       formData.append('imagen', this.imagenSeleccionada()!);
     }
@@ -101,9 +115,9 @@ export class Publicaciones implements OnInit {
     this.publicacionesService.crear(formData).subscribe({
       next: () => {
         this.creando.set(false);
-        this.formulario.reset();
-        this.imagenSeleccionada.set(null);
-        this.mostrarFormulario.set(false);
+        this.resetFormulario();
+        this.cerrarModalCrear();
+        this.paginaActual.set(1);
         this.cargarPublicaciones();
       },
       error: (err) => {
@@ -113,13 +127,30 @@ export class Publicaciones implements OnInit {
     });
   }
 
-  onPublicacionEliminada(id: string): void {
-    this.publicaciones.update((prev) => prev.filter((p) => p.id !== id));
-    this.total.update((v) => v - 1);
+  onPublicacionEliminada(_id: string): void {
+    if (this.publicaciones().length === 1 && this.paginaActual() > 1) {
+      this.paginaActual.update((v) => v - 1);
+    }
+    this.cargarPublicaciones();
   }
 
   onLikeActualizado(_id: string): void {
-    // no recargamos — el componente tarjeta ya actualizó su estado local
+    // No se recarga la lista: TarjetaPublicacion actualiza su propio estado local de likes
+  }
+
+  resetFormulario(): void {
+    this.formulario.reset();
+    this.imagenSeleccionada.set(null);
+    this.previewUrl.set(null);
+    this.errorCrear.set(null);
+  }
+
+  private cerrarModalCrear(): void {
+    const modal = document.getElementById('modalCrearPublicacion');
+    if (modal) {
+      const bsModal = (window as any).bootstrap.Modal.getInstance(modal);
+      bsModal?.hide();
+    }
   }
 
   campoInvalido(campo: string): boolean {

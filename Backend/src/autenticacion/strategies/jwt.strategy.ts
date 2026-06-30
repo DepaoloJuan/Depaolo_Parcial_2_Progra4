@@ -7,23 +7,19 @@ import { ConfigService } from '@nestjs/config';
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private configService: ConfigService) {
     super({
-      // Le decimos que el token viene en el header Authorization: Bearer <token>
+      // Extraemos el token del header: Authorization: Bearer <token>
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      // Si el token está vencido, que lo rechace (no lo ignore)
+      // false: si el token venció, Passport lo rechaza automáticamente con 401
       ignoreExpiration: false,
-      // La clave secreta para verificar la firma del token
+      // El mismo secret que usamos en JwtModule para firmar — debe coincidir para validar la firma
       secretOrKey: configService.get<string>('JWT_SECRET')!,
     });
   }
 
-  // Este método se ejecuta DESPUÉS de que Passport verificó que el token es válido
-  // payload es el contenido que metimos adentro del token cuando lo generamos
-  async validate(payload: {
-    sub: string;
-    nombreUsuario: string;
-    perfil: string;
-  }) {
-    // Lo que retornamos acá queda disponible como req.user en los controllers
+  // validate() se ejecuta SOLO si Passport ya verificó que el token es válido y no está vencido
+  // El payload es lo que guardamos adentro del token cuando lo generamos (sub, nombreUsuario, perfil)
+  async validate(payload: { sub: string; nombreUsuario: string; perfil: string }) {
+    // Lo que retornamos acá queda disponible como req.user en cualquier controller
     return {
       usuarioId: payload.sub,
       nombreUsuario: payload.nombreUsuario,

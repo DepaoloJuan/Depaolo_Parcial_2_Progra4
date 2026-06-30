@@ -10,23 +10,19 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   const token = authService.getToken();
 
-  // Clonamos la request y le agregamos el header Authorization si hay token
-  // Clonamos porque las requests son inmutables en Angular
+  // Las requests HTTP son inmutables en Angular — necesitamos clonarla para modificar los headers
   const reqConToken = token
-    ? req.clone({
-        headers: req.headers.set('Authorization', `Bearer ${token}`),
-      })
-    : req;
+    ? req.clone({ headers: req.headers.set('Authorization', `Bearer ${token}`) })
+    : req; // si no hay token, mandamos la request original sin modificar
 
-  // Dejamos pasar la request y nos enganchamos en la response
   return next(reqConToken).pipe(
     catchError((error: HttpErrorResponse) => {
-      // Si el backend devuelve 401, la sesión expiró o el token es inválido
+      // 401 significa que el token venció o es inválido — forzamos logout y redirigimos al login
       if (error.status === 401) {
-        authService.logout(); // limpiamos localStorage
+        authService.logout();
         router.navigate(['/login']);
       }
-      // Propagamos el error para que el componente también pueda manejarlo si quiere
+      // Propagamos el error para que los componentes también puedan manejarlo con su propio error handler
       return throwError(() => error);
     }),
   );

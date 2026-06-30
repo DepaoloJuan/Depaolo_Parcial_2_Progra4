@@ -4,6 +4,12 @@ import { Observable } from 'rxjs';
 import { Publicacion, RespuestaPublicaciones } from '../models/publicacion.model';
 import { environment } from '../../environments/environment';
 
+/**
+ * Servicio HTTP para el módulo de publicaciones.
+ * Encapsula todas las llamadas a la API REST de publicaciones.
+ * usuarioId nunca se manda en body/query para operaciones protegidas —
+ * el backend lo extrae del token JWT via @UsuarioActual.
+ */
 @Injectable({
   providedIn: 'root',
 })
@@ -11,6 +17,11 @@ export class PublicacionesService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/publicaciones`;
 
+  /**
+   * Obtiene publicaciones paginadas y ordenadas.
+   * HttpParams construye el query string de forma segura (codifica los valores).
+   * @param usuarioId Si se provee, filtra las publicaciones de ese usuario (mi-perfil).
+   */
   listar(
     offset: number = 0,
     limit: number = 10,
@@ -29,26 +40,27 @@ export class PublicacionesService {
     return this.http.get<RespuestaPublicaciones>(this.apiUrl, { params });
   }
 
+  /** Crea una publicación. FormData permite enviar imagen + texto en un solo request. */
   crear(formData: FormData): Observable<Publicacion> {
     return this.http.post<Publicacion>(this.apiUrl, formData);
   }
 
-  eliminar(id: string, usuarioId: string, perfil: string): Observable<{ mensaje: string }> {
-    return this.http.delete<{ mensaje: string }>(
-      `${this.apiUrl}/${id}?usuarioId=${usuarioId}&perfil=${perfil}`,
-    );
+  /** Elimina lógicamente una publicación. El backend autoriza via token JWT. */
+  eliminar(id: string): Observable<{ mensaje: string }> {
+    return this.http.delete<{ mensaje: string }>(`${this.apiUrl}/${id}`);
   }
 
-  darLike(publicacionId: string, usuarioId: string): Observable<{ mensaje: string }> {
-    return this.http.post<{ mensaje: string }>(`${this.apiUrl}/${publicacionId}/likes`, {
-      usuarioId,
-    });
+  /** Agrega un like. El backend identifica al usuario via token JWT. */
+  darLike(publicacionId: string): Observable<{ mensaje: string }> {
+    return this.http.post<{ mensaje: string }>(`${this.apiUrl}/${publicacionId}/likes`, {});
   }
 
-  quitarLike(publicacionId: string, usuarioId: string): Observable<{ mensaje: string }> {
-    return this.http.delete<{ mensaje: string }>(`${this.apiUrl}/${publicacionId}/likes`, {
-      body: { usuarioId },
-    });
+  /**
+   * Quita un like. El backend identifica al usuario via token JWT.
+   * El body vacío es necesario porque HttpClient requiere un body en DELETE con `body`.
+   */
+  quitarLike(publicacionId: string): Observable<{ mensaje: string }> {
+    return this.http.delete<{ mensaje: string }>(`${this.apiUrl}/${publicacionId}/likes`);
   }
 
   obtenerPorId(id: string): Observable<Publicacion> {

@@ -5,7 +5,6 @@ import { Observable, tap } from 'rxjs';
 import { Usuario } from '../models/usuario.model';
 import { environment } from '../../environments/environment';
 
-// Tipamos la respuesta del backend que ahora devuelve token + usuario
 interface RespuestaAuth {
   token: string;
   usuario: Usuario;
@@ -19,8 +18,9 @@ export class AuthService {
   private router = inject(Router);
 
   private readonly USUARIO_KEY = 'usuario';
-  private readonly TOKEN_KEY = 'token'; // ← nuevo
+  private readonly TOKEN_KEY = 'token';
 
+  // Signal privada — solo este servicio puede modificarla; los componentes la leen via usuarioActual
   private _usuarioActual = signal<Usuario | null>(this.cargarUsuarioStorage());
   usuarioActual = this._usuarioActual.asReadonly();
 
@@ -29,7 +29,6 @@ export class AuthService {
       .post<RespuestaAuth>(`${environment.apiUrl}/autenticacion/registro`, datos)
       .pipe(
         tap((respuesta) => {
-          // Guardamos token y usuario al registrarse — el usuario ya queda logueado
           this.guardarSesion(respuesta.token, respuesta.usuario);
           this.router.navigate(['/publicaciones']);
         }),
@@ -38,10 +37,7 @@ export class AuthService {
 
   login(identificador: string, contrasenia: string): Observable<RespuestaAuth> {
     return this.http
-      .post<RespuestaAuth>(`${environment.apiUrl}/autenticacion/login`, {
-        identificador,
-        contrasenia,
-      })
+      .post<RespuestaAuth>(`${environment.apiUrl}/autenticacion/login`, { identificador, contrasenia })
       .pipe(
         tap((respuesta) => {
           this.guardarSesion(respuesta.token, respuesta.usuario);
@@ -53,35 +49,42 @@ export class AuthService {
   actualizarPerfil(id: string, datos: FormData): Observable<Usuario> {
     return this.http.put<Usuario>(`${environment.apiUrl}/usuarios/${id}`, datos).pipe(
       tap((usuario) => {
+        // Sincronizamos localStorage y la signal para que todos los componentes se actualicen
         localStorage.setItem(this.USUARIO_KEY, JSON.stringify(usuario));
         this._usuarioActual.set(usuario);
       }),
     );
   }
 
-  // Valida el token contra el backend — lo usará el spinner al arrancar la app
+  // El interceptor agrega el token automáticamente — no hace falta pasarlo manualmente acá
   autorizar(): Observable<Usuario> {
     const token = this.getToken();
     return this.http.post<Usuario>(`${environment.apiUrl}/autenticacion/autorizar`, { token });
   }
 
-  // Pide un token nuevo al backend — lo usará el modal de sesión
   refrescar(): Observable<RespuestaAuth> {
     const token = this.getToken();
-    return this.http.post<RespuestaAuth>(`${environment.apiUrl}/autenticacion/refrescar`, {
-      token,
-    });
+    return this.http
+      .post<RespuestaAuth>(`${environment.apiUrl}/autenticacion/refrescar`, { token })
+      .pipe(
+        tap((respuesta) => {
+          // Guardamos el nuevo token en localStorage para que el interceptor lo use en los siguientes requests
+          this.guardarSesion(respuesta.token, respuesta.usuario);
+        }),
+      );
   }
 
   // --- Contador de sesión ---
+
   private contadorTimer: any = null;
 
   iniciarContador(): void {
-    this.detenerContador();
+    this.detenerContador(); // cancelamos cualquier timer anterior antes de iniciar uno nuevo
 
+    // Disparamos el evento a los 10 minutos — el token vence a los 15, dando 5 min para decidir
     this.contadorTimer = setTimeout(() => {
       this.mostrarModalSesion();
-    }, 10 * 60 * 1000); // 10 minutos
+    }, 10 * 60 * 1000);
   }
 
   detenerContador(): void {
@@ -92,6 +95,7 @@ export class AuthService {
   }
 
   private mostrarModalSesion(): void {
+    // Usamos un CustomEvent para comunicarnos con app.ts sin crear dependencias directas
     window.dispatchEvent(new CustomEvent('sesion-por-vencer'));
   }
 
@@ -103,7 +107,7 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
-  // El interceptor lo llama para agregar el token en cada request
+  // Lo llama el interceptor para inyectar el token en cada request HTTP
   getToken(): string | null {
     return localStorage.getItem(this.TOKEN_KEY);
   }
@@ -112,15 +116,17 @@ export class AuthService {
     return this._usuarioActual() !== null;
   }
 
+  // computed() se recalcula automáticamente cuando cambia usuarioActual
   esAdmin = computed(() => this._usuarioActual()?.perfil === 'administrador');
 
-  // Centraliza el guardado de sesión — un solo lugar para token + usuario
+  // Un único lugar para guardar token + usuario — evita inconsistencias entre ambos
   private guardarSesion(token: string, usuario: Usuario): void {
     localStorage.setItem(this.TOKEN_KEY, token);
     localStorage.setItem(this.USUARIO_KEY, JSON.stringify(usuario));
     this._usuarioActual.set(usuario);
   }
 
+  // Se llama al inicializar el servicio (antes del primer request) para restaurar la sesión sin llamar al backend
   private cargarUsuarioStorage(): Usuario | null {
     const usuario = localStorage.getItem(this.USUARIO_KEY);
     return usuario ? JSON.parse(usuario) : null;

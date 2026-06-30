@@ -13,81 +13,73 @@ export class AutenticacionService {
     private readonly jwtService: JwtService,
   ) {}
 
-  // REGISTRO — crea el usuario y devuelve token + usuario
   async registrar(dto: CrearUsuarioDto, imagen?: Express.Multer.File) {
     let fotoPerfil: string | undefined;
     if (imagen) {
       const resultado = await this.cloudinaryService.subirImagen(imagen, 'perfiles');
       fotoPerfil = resultado.secure_url;
     }
+
     const usuario = await this.usuariosService.registrar(dto, fotoPerfil);
 
-    // Ahora además generamos el token para que el frontend lo guarde al instante
+    // Generamos el token inmediatamente después del registro para que el usuario quede logueado
     const token = this.generarToken(usuario.id, usuario.nombreUsuario, usuario.perfil);
 
     return { token, usuario };
   }
 
-  // LOGIN — valida credenciales y devuelve token + usuario
   async login(dto: LoginDto) {
     const usuarioCrudo = await this.usuariosService.validarCredenciales(
       dto.identificador,
       dto.contrasenia,
     );
 
-    if (!usuarioCrudo) {
-      throw new UnauthorizedException('Credenciales inválidas');
-    }
+    if (!usuarioCrudo) throw new UnauthorizedException('Credenciales inválidas');
 
+    // activo:false → usuario deshabilitado por un administrador
     if (!usuarioCrudo.activo) {
       throw new UnauthorizedException('Tu cuenta está deshabilitada. Contactá al administrador.');
     }
 
+    // Generamos el token ANTES de sanitizar, porque necesitamos el _id del documento crudo
     const token = this.generarToken(
       usuarioCrudo._id.toString(),
       usuarioCrudo.nombreUsuario,
       usuarioCrudo.perfil,
     );
 
-    // Sanitizamos DESPUÉS de generar el token, para que _id todavía exista
+    // buscarPorId devuelve el usuario ya sanitizado (sin contraseña ni _id)
     const usuario = await this.usuariosService.buscarPorId(usuarioCrudo._id.toString());
 
     return { token, usuario };
   }
 
-  // AUTORIZAR — valida que un token sea válido y devuelve los datos del usuario
   async autorizar(token: string) {
     try {
-      // verify lanza una excepción si el token es inválido o está vencido
+      // verify() lanza JsonWebTokenError o TokenExpiredError si el token es inválido o venció
       const payload = this.jwtService.verify(token);
 
-      // Buscamos el usuario en la DB para devolver sus datos actualizados
+      // Buscamos en la DB para devolver datos frescos (el usuario pudo haber actualizado su perfil)
       const usuario = await this.usuariosService.buscarPorId(payload.sub);
 
-      if (!usuario) {
-        throw new UnauthorizedException('Usuario no encontrado');
-      }
+      if (!usuario) throw new UnauthorizedException('Usuario no encontrado');
 
       return usuario;
     } catch {
-      // Cualquier error con el token (vencido, manipulado, etc.) → 401
+      // Capturamos cualquier error de JWT y lo convertimos en 401
       throw new UnauthorizedException('Token inválido o vencido');
     }
   }
 
-  // REFRESCAR — valida el token actual y emite uno nuevo con 15 minutos más
   async refrescar(token: string) {
     try {
       const payload = this.jwtService.verify(token);
 
-      // Buscamos el usuario para tener los datos frescos
       const usuario = await this.usuariosService.buscarPorId(payload.sub);
 
-      if (!usuario) {
-        throw new UnauthorizedException('Usuario no encontrado');
-      }
+      if (!usuario) throw new UnauthorizedException('Usuario no encontrado');
 
-      // Generamos un token nuevo con la misma información pero vencimiento renovado
+      // Generamos un token nuevo con la misma payload pero con el vencimiento reiniciado a 15 min
       const nuevoToken = this.generarToken(usuario.id, usuario.nombreUsuario, usuario.perfil);
 
       return { token: nuevoToken, usuario };
@@ -96,8 +88,8 @@ export class AutenticacionService {
     }
   }
 
+  // sub (subject) es la convención JWT para el ID del usuario — los otros campos son extras
   private generarToken(id: string, nombreUsuario: string, perfil: string): string {
-    const payload = { sub: id, nombreUsuario, perfil };
-    return this.jwtService.sign(payload);
+    return this.jwtService.sign({ sub: id, nombreUsuario, perfil });
   }
 }

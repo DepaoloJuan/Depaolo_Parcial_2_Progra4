@@ -10,18 +10,15 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
 @Module({
   imports: [
-    // Necesitamos acceso a UsuariosModule para validar credenciales
-    UsuariosModule,
-    // Necesitamos CloudinaryModule para subir fotos de perfil en registro
-    CloudinaryModule,
-    // Passport con JWT como estrategia por defecto
+    UsuariosModule,    // necesitamos validarCredenciales() y buscarPorId() del UsuariosService
+    CloudinaryModule,  // necesitamos subirImagen() para la foto de perfil en el registro
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    // JwtModule configurado de forma asíncrona para poder leer el .env
+    // registerAsync permite leer variables de entorno asíncronamente con ConfigService
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '15m' }, // el token vence en 15 minutos
+        signOptions: { expiresIn: '15m' }, // el token vence a los 15 minutos — consigna sprint-3
       }),
       inject: [ConfigService],
     }),
@@ -29,9 +26,8 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
   controllers: [AutenticacionController],
   providers: [
     AutenticacionService,
-    JwtStrategy, // registramos la strategy para que Passport la encuentre
+    JwtStrategy, // registramos la strategy para que Passport la encuentre por nombre 'jwt'
   ],
-  // Exportamos JwtModule para que otros módulos puedan usar JwtService si lo necesitan
-  exports: [AutenticacionService, JwtModule],
+  exports: [AutenticacionService, JwtModule], // JwtModule se exporta para que otros módulos usen JwtService si lo necesitan
 })
 export class AutenticacionModule {}

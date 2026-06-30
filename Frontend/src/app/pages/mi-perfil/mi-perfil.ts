@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Navbar } from '../../components/navbar/navbar';
@@ -7,6 +7,10 @@ import { AuthService } from '../../services/auth.service';
 import { PublicacionesService } from '../../services/publicaciones.service';
 import { Publicacion } from '../../models/publicacion.model';
 
+/**
+ * Página de perfil del usuario logueado.
+ * Muestra sus datos, sus últimas publicaciones y permite editar el perfil.
+ */
 @Component({
   selector: 'app-mi-perfil',
   imports: [Navbar, TarjetaPublicacion, DatePipe, ReactiveFormsModule],
@@ -20,15 +24,24 @@ export class MiPerfil implements OnInit {
 
   usuarioActual = this.authService.usuarioActual;
   publicaciones = signal<Publicacion[]>([]);
+  total = signal(0);
+  paginaActual = signal(1);
+  readonly limit = 3;
   cargando = signal(false);
+
+  totalPaginas = computed(() => Math.ceil(this.total() / this.limit));
+  paginas = computed(() => Array.from({ length: this.totalPaginas() }, (_, i) => i + 1));
   guardando = signal(false);
   errorEditar = signal<string | null>(null);
+  /** Se pone en true por 2 segundos para mostrar el mensaje de éxito antes de cerrar el modal. */
   exitoEditar = signal(false);
   imagenSeleccionada = signal<File | null>(null);
   previsualizacion = signal<string | null>(null);
 
   formularioEditar: FormGroup = this.buildForm();
   mostrarFormulario = signal(false);
+
+  // --- Estado de creación de publicación ---
   formularioPublicacion: FormGroup = this.buildFormPublicacion();
   imagenPublicacion = signal<File | null>(null);
   creando = signal(false);
@@ -38,10 +51,16 @@ export class MiPerfil implements OnInit {
     const usuario = this.usuarioActual();
     if (usuario) {
       this.cargarPublicaciones(usuario.id);
+      // Se reconstruye el form aquí para que ya tenga los datos del usuario
       this.formularioEditar = this.buildForm();
     }
   }
 
+  /**
+   * Pre-rellena el formulario de edición con los datos actuales del usuario.
+   * fechaNacimiento se recorta a 10 chars (YYYY-MM-DD) para que el input date
+   * lo reconozca correctamente (la API devuelve el ISO completo con hora y zona).
+   */
   private buildForm(): FormGroup {
     const usuario = this.usuarioActual();
     return this.fb.group({
@@ -52,15 +71,32 @@ export class MiPerfil implements OnInit {
     });
   }
 
+  /** Carga las últimas 3 publicaciones del usuario (ordenadas por fecha). */
   private cargarPublicaciones(usuarioId: string): void {
     this.cargando.set(true);
-    this.publicacionesService.listar(0, 3, 'fecha', usuarioId).subscribe({
+    const offset = (this.paginaActual() - 1) * this.limit;
+    this.publicacionesService.listar(offset, this.limit, 'fecha', usuarioId).subscribe({
       next: (resp) => {
         this.publicaciones.set(resp.data);
+        this.total.set(resp.total);
         this.cargando.set(false);
       },
       error: () => this.cargando.set(false),
     });
+  }
+
+  irAPagina(n: number): void {
+    this.paginaActual.set(n);
+    const usuario = this.usuarioActual();
+    if (usuario) this.cargarPublicaciones(usuario.id);
+  }
+
+  paginaAnterior(): void {
+    if (this.paginaActual() > 1) this.irAPagina(this.paginaActual() - 1);
+  }
+
+  paginaSiguiente(): void {
+    if (this.paginaActual() < this.totalPaginas()) this.irAPagina(this.paginaActual() + 1);
   }
 
   onImagenSeleccionada(evento: Event): void {
@@ -73,6 +109,12 @@ export class MiPerfil implements OnInit {
     reader.readAsDataURL(archivo);
   }
 
+  /**
+   * Guarda los cambios del perfil.
+   * Solo agrega al FormData los campos que tienen valor (partial update).
+   * Tras el éxito, espera 2s, muestra feedback y cierra el modal de Bootstrap
+   * accediendo a su instancia via la API global de Bootstrap (window.bootstrap).
+   */
   onGuardarPerfil(): void {
     const usuario = this.usuarioActual();
     if (!usuario) return;
@@ -96,6 +138,8 @@ export class MiPerfil implements OnInit {
         this.imagenSeleccionada.set(null);
         this.previsualizacion.set(null);
         this.exitoEditar.set(true);
+
+        // Cierra el modal de Bootstrap después de mostrar el mensaje de éxito
         setTimeout(() => {
           this.exitoEditar.set(false);
           const modal = document.getElementById('modalEditarPerfil');
@@ -126,6 +170,7 @@ export class MiPerfil implements OnInit {
     }
   }
 
+  /** Crea una publicación desde el perfil y recarga las publicaciones del usuario. */
   onCrearPublicacion(): void {
     if (this.formularioPublicacion.invalid) return;
     const usuario = this.usuarioActual();
@@ -137,7 +182,6 @@ export class MiPerfil implements OnInit {
     const formData = new FormData();
     formData.append('titulo', this.formularioPublicacion.value.titulo);
     formData.append('descripcion', this.formularioPublicacion.value.descripcion);
-    formData.append('usuarioId', usuario.id);
     if (this.imagenPublicacion()) {
       formData.append('imagen', this.imagenPublicacion()!);
     }
@@ -148,6 +192,7 @@ export class MiPerfil implements OnInit {
         this.formularioPublicacion.reset();
         this.imagenPublicacion.set(null);
         this.mostrarFormulario.set(false);
+        this.paginaActual.set(1);
         this.cargarPublicaciones(usuario.id);
       },
       error: (err) => {
@@ -157,10 +202,16 @@ export class MiPerfil implements OnInit {
     });
   }
 
-  onPublicacionEliminada(id: string): void {
-    this.publicaciones.update((prev) => prev.filter((p) => p.id !== id));
+  onPublicacionEliminada(_id: string): void {
+    const usuario = this.usuarioActual();
+    if (!usuario) return;
+    if (this.publicaciones().length === 1 && this.paginaActual() > 1) {
+      this.paginaActual.update((v) => v - 1);
+    }
+    this.cargarPublicaciones(usuario.id);
   }
 
+  /** Recarga las publicaciones del usuario para reflejar el cambio en el conteo de likes. */
   onLikeActualizado(): void {
     const usuario = this.usuarioActual();
     if (usuario) this.cargarPublicaciones(usuario.id);

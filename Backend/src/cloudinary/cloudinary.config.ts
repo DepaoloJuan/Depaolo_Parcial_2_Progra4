@@ -1,6 +1,11 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { ConfigService } from '@nestjs/config';
 
+/**
+ * Provider de NestJS que configura el SDK de Cloudinary con las credenciales del .env.
+ * Se registra en CloudinaryModule y queda disponible para inyectar el token 'CLOUDINARY'
+ * en cualquier servicio que lo necesite.
+ */
 export const CloudinaryProvider = {
   provide: 'CLOUDINARY',
   useFactory: (configService: ConfigService) => {
