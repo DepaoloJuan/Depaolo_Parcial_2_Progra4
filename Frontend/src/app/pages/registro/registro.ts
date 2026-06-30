@@ -62,7 +62,6 @@ export class Registro {
         repetirContrasenia: ['', Validators.required],
         fechaNacimiento: ['', Validators.required],
         descripcion: ['', Validators.maxLength(200)],
-        perfil: ['usuario', Validators.required],
       },
       // El validador de grupo se ejecuta después de todos los validadores de campo
       { validators: contraseniasIguales },
@@ -108,7 +107,7 @@ export class Registro {
     formData.append('contrasenia', valores.contrasenia);
     formData.append('fechaNacimiento', valores.fechaNacimiento);
     formData.append('descripcion', valores.descripcion ?? '');
-    formData.append('perfil', valores.perfil);
+    formData.append('perfil', 'usuario');
 
     if (this.imagenSeleccionada()) {
       formData.append('fotoPerfil', this.imagenSeleccionada()!);

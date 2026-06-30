@@ -98,6 +98,12 @@ export class PublicacionesService {
     }
 
     await this.publicacionesRepository.bajaLogica(id);
+    await this.publicacionesRepository.inactivarComentariosDe(id);
+
+    if (publicacion.imagenPublicId) {
+      await this.cloudinaryService.eliminarImagen(publicacion.imagenPublicId);
+    }
+
     return { mensaje: 'Publicación eliminada correctamente' };
   }
 

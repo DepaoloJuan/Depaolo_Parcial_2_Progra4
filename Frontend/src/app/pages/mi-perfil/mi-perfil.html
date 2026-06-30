@@ -63,66 +63,27 @@
       </div>
     </div>
 
-    <!-- Crear publicación -->
+    <!-- Trigger crear publicación -->
     <div class="card shadow-sm mb-4">
-      <div class="card-body">
-        @if (!mostrarFormulario()) {
+      <div class="card-body py-2 px-3">
+        <div class="d-flex align-items-center gap-3">
+          @if (usuarioActual()?.fotoPerfil) {
+            <img [src]="usuarioActual()?.fotoPerfil" class="rounded-circle flex-shrink-0"
+              style="width: 40px; height: 40px; object-fit: cover;" />
+          } @else {
+            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
+              style="width: 40px; height: 40px;">
+              {{ usuarioActual()?.nombre?.charAt(0) }}
+            </div>
+          }
           <button
-            class="btn btn-light w-100 text-start text-muted rounded-pill"
-            (click)="mostrarFormulario.set(true)"
+            class="btn btn-light rounded-pill flex-grow-1 text-start text-muted px-4"
+            data-bs-toggle="modal"
+            data-bs-target="#modalCrearPublicacionPerfil"
           >
             ¿Qué estás pensando, {{ usuarioActual()?.nombre }}?
           </button>
-        } @else {
-          <form [formGroup]="formularioPublicacion" (ngSubmit)="onCrearPublicacion()">
-            <div class="mb-2">
-              <input
-                type="text"
-                class="form-control"
-                formControlName="titulo"
-                placeholder="Título"
-              />
-            </div>
-            <div class="mb-2">
-              <textarea
-                class="form-control"
-                formControlName="descripcion"
-                placeholder="¿Qué estás pensando?"
-                rows="3"
-              ></textarea>
-            </div>
-            <div class="mb-2">
-              <input
-                type="file"
-                class="form-control"
-                accept="image/jpeg,image/png,image/webp"
-                (change)="onImagenPublicacionSeleccionada($event)"
-              />
-            </div>
-            @if (errorCrear()) {
-              <div class="alert alert-danger py-2">{{ errorCrear() }}</div>
-            }
-            <div class="d-flex gap-2">
-              <button
-                type="submit"
-                class="btn btn-primary"
-                [disabled]="formularioPublicacion.invalid || creando()"
-              >
-                @if (creando()) {
-                  <span class="spinner-border spinner-border-sm me-1"></span>
-                }
-                Publicar
-              </button>
-              <button
-                type="button"
-                class="btn btn-outline-secondary"
-                (click)="mostrarFormulario.set(false)"
-              >
-                Cancelar
-              </button>
-            </div>
-          </form>
-        }
+        </div>
       </div>
     </div>
 
@@ -173,6 +134,102 @@
       No hay usuario logueado.
     </div>
   }
+</div>
+
+<!-- Modal crear publicación -->
+<div class="modal fade" id="modalCrearPublicacionPerfil" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header border-bottom py-3">
+        <h6 class="modal-title fw-bold mx-auto fs-5">Crear publicación</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" (click)="quitarImagenPublicacion()"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          @if (usuarioActual()?.fotoPerfil) {
+            <img [src]="usuarioActual()?.fotoPerfil" class="rounded-circle"
+              style="width: 42px; height: 42px; object-fit: cover;" />
+          } @else {
+            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold"
+              style="width: 42px; height: 42px;">
+              {{ usuarioActual()?.nombre?.charAt(0) }}
+            </div>
+          }
+          <div class="fw-semibold">{{ usuarioActual()?.nombre }} {{ usuarioActual()?.apellido }}</div>
+        </div>
+
+        <form [formGroup]="formularioPublicacion" (ngSubmit)="onCrearPublicacion()">
+          <div class="mb-3">
+            <input
+              type="text"
+              class="form-control bg-light border-0"
+              [class.is-invalid]="campoPublicacionInvalido('titulo')"
+              formControlName="titulo"
+              placeholder="Título"
+            />
+            @if (campoPublicacionInvalido('titulo')) {
+              <div class="invalid-feedback">El título es obligatorio</div>
+            }
+          </div>
+          <div class="mb-3">
+            <textarea
+              class="form-control bg-light border-0"
+              [class.is-invalid]="campoPublicacionInvalido('descripcion')"
+              formControlName="descripcion"
+              placeholder="¿Qué estás pensando, {{ usuarioActual()?.nombre }}?"
+              rows="4"
+            ></textarea>
+            @if (campoPublicacionInvalido('descripcion')) {
+              <div class="invalid-feedback">La descripción es obligatoria</div>
+            }
+          </div>
+
+          <input
+            type="file"
+            id="fileInputPublicacionPerfil"
+            class="d-none"
+            accept="image/jpeg,image/png,image/webp"
+            (change)="onImagenPublicacionSeleccionada($event)"
+          />
+          @if (previewUrlPublicacion()) {
+            <div class="position-relative mb-3">
+              <img [src]="previewUrlPublicacion()" class="w-100 rounded" style="max-height: 220px; object-fit: cover;" />
+              <button type="button"
+                class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2 rounded-circle d-flex align-items-center justify-content-center"
+                style="width: 28px; height: 28px;"
+                (click)="quitarImagenPublicacion()">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
+          } @else {
+            <div class="rounded mb-3 p-4 text-center text-muted"
+              style="background: #f0f2f5; cursor: pointer; border: 2px dashed #ced0d4;"
+              (click)="abrirSelectorImagenPublicacion()">
+              <i class="bi bi-image fs-2 d-block mb-1"></i>
+              <span class="small fw-semibold">Agregar foto</span>
+            </div>
+          }
+
+          @if (errorCrear()) {
+            <div class="alert alert-danger py-2">{{ errorCrear() }}</div>
+          }
+          <button
+            type="submit"
+            class="btn btn-primary w-100 rounded-pill fw-semibold"
+            [disabled]="formularioPublicacion.invalid || creando()"
+          >
+            @if (creando()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            Publicar
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
 </div>
 
 <!-- Modal editar perfil -->

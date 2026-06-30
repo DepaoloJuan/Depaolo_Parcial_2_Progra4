@@ -44,6 +44,7 @@ export class MiPerfil implements OnInit {
   // --- Estado de creación de publicación ---
   formularioPublicacion: FormGroup = this.buildFormPublicacion();
   imagenPublicacion = signal<File | null>(null);
+  previewUrlPublicacion = signal<string | null>(null);
   creando = signal(false);
   errorCrear = signal<string | null>(null);
 
@@ -165,9 +166,31 @@ export class MiPerfil implements OnInit {
 
   onImagenPublicacionSeleccionada(evento: Event): void {
     const input = evento.target as HTMLInputElement;
-    if (input.files?.length) {
-      this.imagenPublicacion.set(input.files[0]);
-    }
+    if (!input.files?.length) return;
+    const archivo = input.files[0];
+    this.imagenPublicacion.set(archivo);
+    const reader = new FileReader();
+    reader.onload = (e) => this.previewUrlPublicacion.set(e.target?.result as string);
+    reader.readAsDataURL(archivo);
+  }
+
+  /** Dispara el click del input[type=file] oculto para abrir el selector del SO. */
+  abrirSelectorImagenPublicacion(): void {
+    document.getElementById('fileInputPublicacionPerfil')?.click();
+  }
+
+  /** Limpia la imagen seleccionada. input.value = '' es necesario para que el navegador
+   *  permita seleccionar el mismo archivo nuevamente después de quitarlo. */
+  quitarImagenPublicacion(): void {
+    this.imagenPublicacion.set(null);
+    this.previewUrlPublicacion.set(null);
+    const input = document.getElementById('fileInputPublicacionPerfil') as HTMLInputElement;
+    if (input) input.value = '';
+  }
+
+  campoPublicacionInvalido(campo: string): boolean {
+    const control = this.formularioPublicacion.get(campo);
+    return !!(control?.invalid && control?.touched);
   }
 
   /** Crea una publicación desde el perfil y recarga las publicaciones del usuario. */
@@ -191,9 +214,11 @@ export class MiPerfil implements OnInit {
         this.creando.set(false);
         this.formularioPublicacion.reset();
         this.imagenPublicacion.set(null);
-        this.mostrarFormulario.set(false);
+        this.previewUrlPublicacion.set(null);
         this.paginaActual.set(1);
         this.cargarPublicaciones(usuario.id);
+        const modal = document.getElementById('modalCrearPublicacionPerfil');
+        if (modal) (window as any).bootstrap?.Modal.getInstance(modal)?.hide();
       },
       error: (err) => {
         this.creando.set(false);

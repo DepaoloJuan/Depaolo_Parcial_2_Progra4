@@ -85,6 +85,50 @@ export class UsuariosService {
     return this.sanitizarUsuario(usuario);
   }
 
+  /** Devuelve todos los usuarios sanitizados (sin contraseña) ordenados por nombre. */
+  async listar() {
+    const usuarios = await this.usuariosRepository.listar();
+    return usuarios.map((u) => this.sanitizarUsuario(u));
+  }
+
+  /**
+   * Crea un usuario desde el panel de administración.
+   * A diferencia de registrar(), permite especificar el perfil ('usuario' o 'administrador').
+   * Aplica las mismas validaciones de unicidad y hashing que el registro público.
+   */
+  async crearPorAdmin(dto: CrearUsuarioDto, fotoPerfil?: string) {
+    const correoExiste = await this.usuariosRepository.existeCorreo(dto.correo);
+    if (correoExiste) throw new ConflictException('El correo ya está registrado');
+
+    const nombreUsuarioExiste = await this.usuariosRepository.existeNombreUsuario(dto.nombreUsuario);
+    if (nombreUsuarioExiste) throw new ConflictException('El nombre de usuario ya está en uso');
+
+    // mismo costo de hashing que el registro público para mantener consistencia
+    const hash = await bcrypt.hash(dto.contrasenia, 10);
+
+    const usuario = await this.usuariosRepository.crear({
+      ...dto,
+      contrasenia: hash,
+      fotoPerfil: fotoPerfil ?? '',
+    });
+
+    return this.sanitizarUsuario(usuario);
+  }
+
+  /** Deshabilita un usuario. Al intentar el login recibirá un 401 con mensaje explicativo. */
+  async deshabilitar(id: string) {
+    const usuario = await this.usuariosRepository.deshabilitar(id);
+    if (!usuario) throw new NotFoundException('Usuario no encontrado');
+    return this.sanitizarUsuario(usuario);
+  }
+
+  /** Reactiva un usuario deshabilitado, permitiéndole volver a ingresar a la aplicación. */
+  async rehabilitar(id: string) {
+    const usuario = await this.usuariosRepository.rehabilitar(id);
+    if (!usuario) throw new NotFoundException('Usuario no encontrado');
+    return this.sanitizarUsuario(usuario);
+  }
+
   private sanitizarUsuario(usuario: any) {
     const obj = usuario.toObject ? usuario.toObject({ virtuals: true }) : usuario;
     const { contrasenia, _id, __v, ...resto } = obj;

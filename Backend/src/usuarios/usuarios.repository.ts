@@ -66,4 +66,23 @@ export class UsuariosRepository {
       .exec();
   }
 
+  /** Devuelve todos los usuarios ordenados alfabéticamente por nombre. */
+  async listar(): Promise<UsuarioDocument[]> {
+    return this.modelo.find({}).sort({ nombre: 1 }).exec();
+  }
+
+  /** Baja lógica: marca activo:false sin eliminar el documento. */
+  async deshabilitar(id: string): Promise<UsuarioDocument | null> {
+    return this.modelo
+      .findByIdAndUpdate(id, { activo: false }, { returnDocument: 'after' })
+      .exec();
+  }
+
+  /** Rehabilita un usuario previamente deshabilitado, restaurando activo:true. */
+  async rehabilitar(id: string): Promise<UsuarioDocument | null> {
+    return this.modelo
+      .findByIdAndUpdate(id, { activo: true }, { returnDocument: 'after' })
+      .exec();
+  }
+
 }
