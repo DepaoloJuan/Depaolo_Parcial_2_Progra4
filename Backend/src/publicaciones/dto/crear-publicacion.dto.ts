@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 /**
  * DTO de validación para crear una nueva publicación.
@@ -16,8 +16,10 @@ export class CrearPublicacionDto {
   descripcion!: string;
 
   /**
-   * No se valida ni se espera del cliente — el controller lo inyecta desde el token JWT
-   * usando @UsuarioActual('usuarioId'). Cualquier valor enviado en el body es descartado.
+   * @IsOptional lo mantiene en la whitelist del ValidationPipe para que no rechace
+   * el campo si el frontend lo sigue mandando. El controller lo sobreescribe desde el token.
    */
+  @IsOptional()
+  @IsString()
   usuarioId?: string;
 }
