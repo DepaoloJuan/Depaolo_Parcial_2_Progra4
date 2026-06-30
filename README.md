@@ -4,6 +4,11 @@
 
 Aplicación de red social desarrollada para la materia Programación IV (UTN FR Avellaneda). Proyecto dividido en frontend (Angular 21) y backend (NestJS + MongoDB), construido de forma incremental en 4 sprints.
 
+## Deploy
+
+- **Frontend:** https://depaolo-parcial-2-progra4.vercel.app/
+- **Backend:** https://tp2-redsocial-backend.onrender.com
+
 ## Stack
 
 - **Frontend:** Angular 21 (Standalone Components, Signals), Bootstrap 5, Vercel
