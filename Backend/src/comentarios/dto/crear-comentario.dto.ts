@@ -6,9 +6,11 @@ export class CrearComentarioDto {
   @IsNotEmpty()
   publicacionId!: string;
 
-  @IsMongoId()
-  @IsNotEmpty()
-  usuarioId!: string;
+  /**
+   * No se valida ni se espera del cliente — el controller lo inyecta desde el token JWT
+   * usando @UsuarioActual('usuarioId'). Cualquier valor enviado en el body es descartado.
+   */
+  usuarioId?: string;
 
   @IsString()
   @IsNotEmpty()

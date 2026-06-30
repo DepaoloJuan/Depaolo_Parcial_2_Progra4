@@ -16,10 +16,15 @@ import { PublicacionesService } from './publicaciones.service';
 import { CrearPublicacionDto } from './dto/crear-publicacion.dto';
 import { ListarPublicacionesDto } from './dto/listar-publicaciones.dto';
 import { multerConfig } from '../cloudinary/multer.config';
+import { UsuarioActual } from '../autenticacion/decorators/usuario-actual.decorator';
 
 /**
  * Controlador de publicaciones.
  * Expone los endpoints de creación, listado, eliminación y manejo de likes.
+ *
+ * Todas las rutas excepto GET están protegidas por JwtAuthGuard (aplicado globalmente en app.module).
+ * El usuarioId y perfil siempre se leen del token verificado via @UsuarioActual — nunca del cliente —
+ * para evitar que alguien con un token válido pueda falsificar su identidad.
  */
 @Controller('publicaciones')
 export class PublicacionesController {
@@ -29,6 +34,7 @@ export class PublicacionesController {
    * POST /api/v1/publicaciones
    * Crea una publicación. Acepta multipart/form-data porque la imagen es opcional
    * pero debe viajar en el mismo request que los campos de texto.
+   * El usuarioId viene del token JWT, no del body.
    */
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -36,7 +42,10 @@ export class PublicacionesController {
   crear(
     @Body() dto: CrearPublicacionDto,
     @UploadedFile() imagen?: Express.Multer.File,
+    @UsuarioActual('usuarioId') usuarioId?: string,
   ) {
+    // Sobreescribimos cualquier usuarioId del body con el del token verificado
+    dto.usuarioId = usuarioId;
     return this.publicacionesService.crear(dto, imagen);
   }
 
@@ -56,34 +65,44 @@ export class PublicacionesController {
     return this.publicacionesService.obtenerPorId(id);
   }
 
-  // DELETE /api/v1/publicaciones/:id
+  /**
+   * DELETE /api/v1/publicaciones/:id
+   * Elimina lógicamente una publicación.
+   * usuarioId y perfil vienen del token JWT — el service los usa para verificar autoría.
+   */
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   eliminar(
     @Param('id') id: string,
-    @Query('usuarioId') usuarioId: string,
-    @Query('perfil') perfil: string,
+    @UsuarioActual('usuarioId') usuarioId: string,
+    @UsuarioActual('perfil') perfil: string,
   ) {
     return this.publicacionesService.eliminar(id, usuarioId, perfil);
   }
 
   /**
    * POST /api/v1/publicaciones/:id/likes
-   * Agrega un like. El usuarioId va en el body (JSON) para no exponerlo en la URL.
+   * Agrega un like. El usuarioId se extrae del token, no del body.
    */
   @Post(':id/likes')
   @HttpCode(HttpStatus.OK)
-  darLike(@Param('id') id: string, @Body('usuarioId') usuarioId: string) {
+  darLike(
+    @Param('id') id: string,
+    @UsuarioActual('usuarioId') usuarioId: string,
+  ) {
     return this.publicacionesService.darLike(id, usuarioId);
   }
 
   /**
    * DELETE /api/v1/publicaciones/:id/likes
-   * Quita un like. El usuarioId va en el body del DELETE .
+   * Quita un like. El usuarioId se extrae del token, no del body.
    */
   @Delete(':id/likes')
   @HttpCode(HttpStatus.OK)
-  quitarLike(@Param('id') id: string, @Body('usuarioId') usuarioId: string) {
+  quitarLike(
+    @Param('id') id: string,
+    @UsuarioActual('usuarioId') usuarioId: string,
+  ) {
     return this.publicacionesService.quitarLike(id, usuarioId);
   }
 }
