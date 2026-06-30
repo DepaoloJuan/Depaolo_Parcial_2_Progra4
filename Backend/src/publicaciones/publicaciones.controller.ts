@@ -34,19 +34,17 @@ export class PublicacionesController {
    * POST /api/v1/publicaciones
    * Crea una publicación. Acepta multipart/form-data porque la imagen es opcional
    * pero debe viajar en el mismo request que los campos de texto.
-   * El usuarioId viene del token JWT, no del body.
+   * El usuarioId no forma parte del DTO — se extrae del token y se pasa al service por separado.
    */
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(FileInterceptor('imagen', multerConfig))
   crear(
     @Body() dto: CrearPublicacionDto,
+    @UsuarioActual('usuarioId') usuarioId: string,
     @UploadedFile() imagen?: Express.Multer.File,
-    @UsuarioActual('usuarioId') usuarioId?: string,
   ) {
-    // Sobreescribimos cualquier usuarioId del body con el del token verificado
-    dto.usuarioId = usuarioId;
-    return this.publicacionesService.crear(dto, imagen);
+    return this.publicacionesService.crear(dto, usuarioId, imagen);
   }
 
   /**

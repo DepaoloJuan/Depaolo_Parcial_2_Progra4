@@ -11,11 +11,12 @@ export class ComentariosRepository {
     private readonly comentarioModel: Model<ComentarioDocument>,
   ) {}
 
-  async crear(dto: CrearComentarioDto): Promise<ComentarioDocument> {
+  // usuarioId llega como parámetro separado — el DTO ya no lo incluye
+  async crear(dto: CrearComentarioDto, usuarioId: string): Promise<ComentarioDocument> {
     const comentario = new this.comentarioModel({
       // Convertimos los IDs a ObjectId para que Mongoose los guarde con el tipo correcto
       publicacionId: new Types.ObjectId(dto.publicacionId),
-      usuarioId: new Types.ObjectId(dto.usuarioId),
+      usuarioId: new Types.ObjectId(usuarioId),
       mensaje: dto.mensaje,
     });
     return comentario.save();

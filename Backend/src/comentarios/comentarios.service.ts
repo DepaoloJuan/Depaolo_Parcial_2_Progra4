@@ -11,8 +11,9 @@ import { ActualizarComentarioDto } from './dto/actualizar-comentario.dto';
 export class ComentariosService {
   constructor(private readonly comentariosRepository: ComentariosRepository) {}
 
-  async crear(dto: CrearComentarioDto) {
-    return this.comentariosRepository.crear(dto);
+  // usuarioId llega separado del DTO — extraído del token en el controller
+  async crear(dto: CrearComentarioDto, usuarioId: string) {
+    return this.comentariosRepository.crear(dto, usuarioId);
   }
 
   async actualizar(id: string, dto: ActualizarComentarioDto, usuarioId: string) {

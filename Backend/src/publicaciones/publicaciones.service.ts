@@ -23,9 +23,11 @@ export class PublicacionesService {
 
   /**
    * Crea una publicación. Si viene imagen, la sube a Cloudinary primero.
+   * usuarioId llega como parámetro separado (extraído del token en el controller)
+   * y nunca del body del cliente, para evitar suplantación de identidad.
    * @returns La publicación persistida sin _id ni __v internos.
    */
-  async crear(dto: CrearPublicacionDto, imagen?: Express.Multer.File) {
+  async crear(dto: CrearPublicacionDto, usuarioId: string, imagen?: Express.Multer.File) {
     let imagenUrl = '';
     let imagenPublicId = '';
 
@@ -35,7 +37,7 @@ export class PublicacionesService {
       imagenPublicId = resultado.public_id;   // guardamos el ID para poder eliminarla luego
     }
 
-    const publicacion = await this.publicacionesRepository.crear(dto, imagenUrl, imagenPublicId);
+    const publicacion = await this.publicacionesRepository.crear(dto, usuarioId, imagenUrl, imagenPublicId);
     return this.sanitizar(publicacion);
   }
 

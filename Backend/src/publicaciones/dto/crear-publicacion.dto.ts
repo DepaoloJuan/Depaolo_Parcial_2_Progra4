@@ -1,8 +1,10 @@
-import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
 
 /**
  * DTO de validación para crear una nueva publicación.
  * Se recibe como multipart/form-data junto con la imagen opcional.
+ * usuarioId NO está en el DTO — viene del token JWT y el controller lo pasa
+ * al service como parámetro separado, nunca del body del cliente.
  */
 export class CrearPublicacionDto {
   @IsNotEmpty({ message: 'El título es obligatorio' })
@@ -14,12 +16,4 @@ export class CrearPublicacionDto {
   @IsString()
   @MaxLength(500)
   descripcion!: string;
-
-  /**
-   * @IsOptional lo mantiene en la whitelist del ValidationPipe para que no rechace
-   * el campo si el frontend lo sigue mandando. El controller lo sobreescribe desde el token.
-   */
-  @IsOptional()
-  @IsString()
-  usuarioId?: string;
 }
