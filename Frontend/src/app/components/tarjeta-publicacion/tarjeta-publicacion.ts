@@ -3,8 +3,7 @@ import { Router } from '@angular/router';
 import { Publicacion } from '../../models/publicacion.model';
 import { AuthService } from '../../services/auth.service';
 import { PublicacionesService } from '../../services/publicaciones.service';
-import { FechaRelativaPipe } from '../../pipes/fecha.pipe';
-import { TruncarPipe } from '../../pipes/truncar.pipe';
+import { DatePipe, SlicePipe } from '@angular/common';
 
 /**
  * Componente de tarjeta de publicación.
@@ -13,7 +12,7 @@ import { TruncarPipe } from '../../pipes/truncar.pipe';
  */
 @Component({
   selector: 'app-tarjeta-publicacion',
-  imports: [FechaRelativaPipe, TruncarPipe],
+  imports: [DatePipe, SlicePipe],
   templateUrl: './tarjeta-publicacion.html',
   styleUrl: './tarjeta-publicacion.css',
 })
