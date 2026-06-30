@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsMongoId } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsMongoId } from 'class-validator';
 
 export class CrearComentarioDto {
   // @IsMongoId valida que sea un string con formato de ObjectId válido de MongoDB (24 chars hex)
@@ -7,9 +7,11 @@ export class CrearComentarioDto {
   publicacionId!: string;
 
   /**
-   * No se valida ni se espera del cliente — el controller lo inyecta desde el token JWT
-   * usando @UsuarioActual('usuarioId'). Cualquier valor enviado en el body es descartado.
+   * @IsOptional lo mantiene en la whitelist del ValidationPipe para que no rechace
+   * el campo si el frontend lo sigue mandando. El controller lo sobreescribe desde el token.
    */
+  @IsOptional()
+  @IsMongoId()
   usuarioId?: string;
 
   @IsString()
