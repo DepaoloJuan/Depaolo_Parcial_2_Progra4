@@ -30,6 +30,8 @@ export class TarjetaPublicacion implements OnInit {
   private router = inject(Router);
 
   usuarioActual = this.authService.usuarioActual;
+  // Los administradores pueden eliminar cualquier publicación, no solo las propias
+  esAdmin = this.authService.esAdmin;
 
   /**
    * Signal local con el array de IDs de usuarios que dieron like.
@@ -58,7 +60,7 @@ export class TarjetaPublicacion implements OnInit {
   puedeEliminar = computed(() => {
     const usuario = this.usuarioActual();
     if (!usuario) return false;
-    return usuario.id === this.publicacion.usuario.id;
+    return usuario.id === this.publicacion.usuario.id || this.esAdmin();
   });
 
   /**

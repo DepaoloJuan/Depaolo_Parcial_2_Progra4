@@ -1,0 +1,242 @@
+<app-navbar />
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">Gestión de usuarios</h2>
+    <button class="btn btn-primary" (click)="abrirFormulario()">
+      <i class="bi bi-person-plus-fill me-1"></i> Nuevo usuario
+    </button>
+  </div>
+
+  <!-- Formulario de creación — se cierra al hacer click fuera -->
+  @if (mostrarFormulario()) {
+    <div
+      class="card shadow mb-4"
+      appClickFuera
+      (clickFuera)="cerrarFormulario()"
+    >
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Crear nuevo usuario</span>
+        <button class="btn-close" (click)="cerrarFormulario()"></button>
+      </div>
+      <div class="card-body">
+        @if (error()) {
+          <div class="alert alert-danger py-2">{{ error() }}</div>
+        }
+        <form [formGroup]="form" (ngSubmit)="crear()">
+          <div class="row g-3">
+
+            <div class="col-md-6">
+              <label class="form-label">Nombre *</label>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="nombre"
+                appAutoFocus
+                [class.is-invalid]="form.get('nombre')?.invalid && form.get('nombre')?.touched"
+              />
+              @if (form.get('nombre')?.errors?.['required'] && form.get('nombre')?.touched) {
+                <div class="invalid-feedback">El nombre es obligatorio</div>
+              }
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Apellido *</label>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="apellido"
+                [class.is-invalid]="form.get('apellido')?.invalid && form.get('apellido')?.touched"
+              />
+              @if (form.get('apellido')?.errors?.['required'] && form.get('apellido')?.touched) {
+                <div class="invalid-feedback">El apellido es obligatorio</div>
+              }
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Correo electrónico *</label>
+              <input
+                type="email"
+                class="form-control"
+                formControlName="correo"
+                [class.is-invalid]="form.get('correo')?.invalid && form.get('correo')?.touched"
+              />
+              @if (form.get('correo')?.errors?.['email'] && form.get('correo')?.touched) {
+                <div class="invalid-feedback">El correo no tiene formato válido</div>
+              }
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Nombre de usuario *</label>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="nombreUsuario"
+                [class.is-invalid]="form.get('nombreUsuario')?.invalid && form.get('nombreUsuario')?.touched"
+              />
+              @if (form.get('nombreUsuario')?.errors?.['minlength'] && form.get('nombreUsuario')?.touched) {
+                <div class="invalid-feedback">Mínimo 3 caracteres</div>
+              }
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Contraseña *</label>
+              <input
+                type="password"
+                class="form-control"
+                formControlName="contrasenia"
+                [class.is-invalid]="form.get('contrasenia')?.invalid && form.get('contrasenia')?.touched"
+              />
+              @if (form.get('contrasenia')?.touched && form.get('contrasenia')?.invalid) {
+                <div class="invalid-feedback">Mínimo 8 caracteres, una mayúscula y un número</div>
+              }
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Fecha de nacimiento *</label>
+              <input
+                type="date"
+                class="form-control"
+                formControlName="fechaNacimiento"
+                [class.is-invalid]="form.get('fechaNacimiento')?.invalid && form.get('fechaNacimiento')?.touched"
+              />
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Descripción</label>
+              <textarea class="form-control" formControlName="descripcion" rows="2"></textarea>
+            </div>
+
+            <!-- Foto de perfil -->
+            <div class="col-md-6">
+              <label class="form-label">Foto de perfil</label>
+              <input type="file" class="form-control" accept="image/*" (change)="onFotoSeleccionada($event)" />
+              @if (fotoPreview()) {
+                <img [src]="fotoPreview()" class="mt-2 rounded-circle" style="width:60px;height:60px;object-fit:cover;" />
+              }
+            </div>
+
+            <!-- Perfil: radio buttons -->
+            <div class="col-md-6">
+              <label class="form-label d-block">Perfil *</label>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  id="perfilUsuario"
+                  formControlName="perfil"
+                  value="usuario"
+                />
+                <label class="form-check-label" for="perfilUsuario">Usuario</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  id="perfilAdmin"
+                  formControlName="perfil"
+                  value="administrador"
+                />
+                <label class="form-check-label" for="perfilAdmin">Administrador</label>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="mt-4 d-flex gap-2 justify-content-end">
+            <button type="button" class="btn btn-secondary" (click)="cerrarFormulario()">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Crear usuario</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Tabla de usuarios -->
+  @if (cargando()) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary"></div>
+    </div>
+  } @else {
+    <div class="card shadow-sm">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Usuario</th>
+              <th>Correo</th>
+              <th>Perfil</th>
+              <th>Descripción</th>
+              <th>Registrado</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (usuario of usuarios(); track usuario.id) {
+              <tr [appResaltar]="usuario.activo ? '#f0f8ff' : '#fff5f5'">
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    @if (usuario.fotoPerfil) {
+                      <img [src]="usuario.fotoPerfil" class="rounded-circle" style="width:32px;height:32px;object-fit:cover;" />
+                    } @else {
+                      <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold" style="width:32px;height:32px;font-size:0.85rem;">
+                        {{ usuario.nombre.charAt(0) }}
+                      </div>
+                    }
+                    <div>
+                      <div class="fw-semibold">{{ usuario.nombre }} {{ usuario.apellido }}</div>
+                      <div class="text-muted small">@{{ usuario.nombreUsuario }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="align-middle small">{{ usuario.correo }}</td>
+                <td class="align-middle">
+                  <span
+                    class="badge"
+                    [class.bg-danger]="usuario.perfil === 'administrador'"
+                    [class.bg-secondary]="usuario.perfil !== 'administrador'"
+                  >
+                    {{ usuario.perfil | primeraMayuscula }}
+                  </span>
+                </td>
+                <td class="align-middle small text-muted">{{ usuario.descripcion | truncar:50 }}</td>
+                <td class="align-middle small">{{ usuario.createdAt | fecha }}</td>
+                <td class="align-middle">
+                  @if (usuario.activo) {
+                    <span class="badge bg-success">Activo</span>
+                  } @else {
+                    <span class="badge bg-danger">Deshabilitado</span>
+                  }
+                </td>
+                <td class="align-middle">
+                  @if (usuario.activo) {
+                    <button
+                      class="btn btn-sm btn-outline-danger"
+                      (click)="deshabilitar(usuario.id)"
+                      title="Deshabilitar usuario"
+                    >
+                      <i class="bi bi-person-x-fill"></i>
+                    </button>
+                  } @else {
+                    <button
+                      class="btn btn-sm btn-outline-success"
+                      (click)="rehabilitar(usuario.id)"
+                      title="Rehabilitar usuario"
+                    >
+                      <i class="bi bi-person-check-fill"></i>
+                    </button>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="text-center text-muted py-4">No hay usuarios registrados</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>

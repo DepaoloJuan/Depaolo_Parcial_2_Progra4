@@ -1,0 +1,79 @@
+<app-navbar />
+
+<div class="container py-4">
+  <h2 class="mb-4 fw-bold">Estadísticas</h2>
+
+  <!-- Filtro de fechas -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Desde</label>
+          <input
+            type="date"
+            class="form-control"
+            [value]="desde()"
+            (change)="desde.set($any($event.target).value)"
+          />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Hasta</label>
+          <input
+            type="date"
+            class="form-control"
+            [value]="hasta()"
+            (change)="hasta.set($any($event.target).value)"
+          />
+        </div>
+        <div class="col-md-4">
+          <button class="btn btn-primary w-100" (click)="aplicarFiltro()" [disabled]="cargando()">
+            @if (cargando()) {
+              <span class="spinner-border spinner-border-sm me-2"></span>
+            }
+            Aplicar filtro
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Gráfico 1: Barras — publicaciones por usuario -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-semibold bg-white">
+          <i class="bi bi-bar-chart-fill text-primary me-2"></i>Publicaciones por usuario
+        </div>
+        <div class="card-body">
+          <canvas #graficoBarras></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráfico 2: Líneas — comentarios por tiempo -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-semibold bg-white">
+          <i class="bi bi-graph-up text-success me-2"></i>Comentarios por día
+        </div>
+        <div class="card-body">
+          <canvas #graficoLineas></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráfico 3: Torta/Doughnut — comentarios por publicación -->
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header fw-semibold bg-white">
+          <i class="bi bi-pie-chart-fill text-warning me-2"></i>Comentarios por publicación (top 10)
+        </div>
+        <div class="card-body d-flex justify-content-center">
+          <div style="max-width: 560px; width: 100%;">
+            <canvas #graficoTorta></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

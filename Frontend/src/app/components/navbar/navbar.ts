@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
@@ -19,6 +19,17 @@ export class Navbar {
   /** Signal de solo lectura; el template la lee para mostrar nombre de usuario y foto. */
   usuarioActual = this.authService.usuarioActual;
   esAdmin = this.authService.esAdmin;
+  /**
+   * Controla si el acordeón "Dashboard" está expandido dentro del dropdown del avatar.
+   * Se maneja con un signal propio en lugar de Bootstrap collapse porque el click
+   * en el botón de acordeón propagaba el evento y cerraba el dropdown; con
+   * stopPropagation + signal manual el dropdown permanece abierto.
+   */
+  dashboardAbierto = signal(false);
+
+  toggleDashboard(): void {
+    this.dashboardAbierto.update((v) => !v);
+  }
 
   logout(): void {
     this.authService.logout();

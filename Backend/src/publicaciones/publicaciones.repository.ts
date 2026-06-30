@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Publicacion, PublicacionDocument } from './schemas/publicacion.schema';
+import { Comentario, ComentarioDocument } from '../comentarios/schemas/comentario.schema';
 import { CrearPublicacionDto } from './dto/crear-publicacion.dto';
 import { ListarPublicacionesDto } from './dto/listar-publicaciones.dto';
 
@@ -14,6 +15,10 @@ export class PublicacionesRepository {
   constructor(
     @InjectModel(Publicacion.name)
     private modelo: Model<PublicacionDocument>,
+    // Comentario se inyecta aquí para poder hacer baja lógica en cascada al eliminar
+    // una publicación, sin crear una dependencia circular entre módulos.
+    @InjectModel(Comentario.name)
+    private comentarioModelo: Model<ComentarioDocument>,
   ) {}
 
   /**
@@ -152,6 +157,14 @@ export class PublicacionesRepository {
         { returnDocument: 'after' },
       )
       .exec();
+  }
+
+  /** Marca como inactivos todos los comentarios de una publicación (baja lógica en cascada). */
+  async inactivarComentariosDe(publicacionId: string): Promise<void> {
+    await this.comentarioModelo.updateMany(
+      { publicacionId: new Types.ObjectId(publicacionId) },
+      { activo: false },
+    );
   }
 
   /** Verifica si un usuario ya dio like a una publicación. */
