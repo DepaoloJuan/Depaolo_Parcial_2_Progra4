@@ -93,7 +93,7 @@ export class PublicacionesRepository {
   /** Cuenta el total de publicaciones activas (para calcular hayMas en el frontend). */
   async contarTotal(query: ListarPublicacionesDto): Promise<number> {
     const filtro: any = { activo: true };
-    if (query.usuarioId) filtro.usuario = query.usuarioId;
+    if (query.usuarioId) filtro.usuario = new Types.ObjectId(query.usuarioId);
     return this.modelo.countDocuments(filtro);
   }
 
