@@ -10,6 +10,7 @@ import {
   HttpStatus,
   UseInterceptors,
   UploadedFile,
+  ForbiddenException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UsuariosService } from './usuarios.service';
@@ -17,6 +18,7 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { ActualizarUsuarioDto } from './dto/actualizar-usuarios.dto';
 import { CrearUsuarioDto } from './dto/crear-usuario.dto';
 import { Roles } from '../autenticacion/decorators/roles.decorator';
+import { UsuarioActual } from '../autenticacion/decorators/usuario-actual.decorator';
 import { multerConfig } from '../cloudinary/multer.config';
 
 @Controller('usuarios')
@@ -67,15 +69,19 @@ export class UsuariosController {
     return this.usuariosService.rehabilitar(id);
   }
 
-  // PUT /api/v1/usuarios/:id — el usuario actualiza su propio perfil
+  // PUT /api/v1/usuarios/:id — el usuario actualiza su propio perfil (admins pueden editar cualquiera)
   @Put(':id')
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(FileInterceptor('fotoPerfil', multerConfig))
   async actualizar(
     @Param('id') id: string,
+    @UsuarioActual() usuarioJwt: { usuarioId: string; perfil: string },
     @Body() dto: ActualizarUsuarioDto,
     @UploadedFile() imagen?: Express.Multer.File,
   ) {
+    if (usuarioJwt.usuarioId !== id && usuarioJwt.perfil !== 'administrador') {
+      throw new ForbiddenException('No podés modificar el perfil de otro usuario');
+    }
     let fotoPerfil: string | undefined;
     if (imagen) {
       const resultado = await this.cloudinaryService.subirImagen(imagen, 'perfiles');

@@ -23,7 +23,7 @@ export class AutenticacionService {
     const usuario = await this.usuariosService.registrar(dto, fotoPerfil);
 
     // Generamos el token inmediatamente después del registro para que el usuario quede logueado
-    const token = this.generarToken(usuario.id, usuario.nombreUsuario, usuario.perfil);
+    const token = this.generarToken(usuario.id, usuario.correo, usuario.nombreUsuario, usuario.perfil);
 
     return { token, usuario };
   }
@@ -44,6 +44,7 @@ export class AutenticacionService {
     // Generamos el token ANTES de sanitizar, porque necesitamos el _id del documento crudo
     const token = this.generarToken(
       usuarioCrudo._id.toString(),
+      usuarioCrudo.correo,
       usuarioCrudo.nombreUsuario,
       usuarioCrudo.perfil,
     );
@@ -80,7 +81,7 @@ export class AutenticacionService {
       if (!usuario) throw new UnauthorizedException('Usuario no encontrado');
 
       // Generamos un token nuevo con la misma payload pero con el vencimiento reiniciado a 15 min
-      const nuevoToken = this.generarToken(usuario.id, usuario.nombreUsuario, usuario.perfil);
+      const nuevoToken = this.generarToken(usuario.id, usuario.correo, usuario.nombreUsuario, usuario.perfil);
 
       return { token: nuevoToken, usuario };
     } catch {
@@ -89,7 +90,7 @@ export class AutenticacionService {
   }
 
   // sub (subject) es la convención JWT para el ID del usuario — los otros campos son extras
-  private generarToken(id: string, nombreUsuario: string, perfil: string): string {
-    return this.jwtService.sign({ sub: id, nombreUsuario, perfil });
+  private generarToken(id: string, correo: string, nombreUsuario: string, perfil: string): string {
+    return this.jwtService.sign({ sub: id, correo, nombreUsuario, perfil });
   }
 }
