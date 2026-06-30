@@ -24,12 +24,8 @@ async function bootstrap() {
     }),
   );
 
-  // CORS: solo permite peticiones desde el frontend Angular (local y producción)
   app.enableCors({
-    origin: [
-      'http://localhost:4200',
-      'https://depaolo-parcial-2-progra4.vercel.app',
-    ],
+    origin: true,
     credentials: true,
   });
 
