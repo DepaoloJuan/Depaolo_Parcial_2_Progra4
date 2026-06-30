@@ -49,14 +49,7 @@
                   <i class="bi bi-person-circle"></i> Mi Perfil
                 </a>
               </li>
-              @if (esAdmin()) {
-                <li>
-                  <a class="dropdown-item d-flex align-items-center gap-2" routerLink="/dashboard/usuarios">
-                    <i class="bi bi-grid"></i> Dashboard
-                  </a>
-                </li>
-              }
-              <li><hr class="dropdown-divider my-1"></li>
+<li><hr class="dropdown-divider my-1"></li>
               <li>
                 <button class="dropdown-item d-flex align-items-center gap-2 text-danger" (click)="logout()">
                   <i class="bi bi-box-arrow-right"></i> Cerrar sesión
