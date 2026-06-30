@@ -104,7 +104,7 @@ export class DetallePublicacion implements OnInit {
     if (!usuario || !pub) return;
 
     this.enviando.set(true);
-    this.comentariosService.crear(pub.id, usuario.id, this.formulario.value.mensaje).subscribe({
+    this.comentariosService.crear(pub.id, this.formulario.value.mensaje).subscribe({
       next: (comentarioCreado) => {
         const usuario = this.usuarioActual()!;
 
@@ -142,7 +142,7 @@ export class DetallePublicacion implements OnInit {
     if (!usuario) return;
 
     this.comentariosService
-      .actualizar(comentarioId, this.formularioEdicion.value.mensaje, usuario.id)
+      .actualizar(comentarioId, this.formularioEdicion.value.mensaje)
       .subscribe({
         next: (actualizado) => {
           this.comentarios.update((prev) =>
@@ -177,8 +177,8 @@ export class DetallePublicacion implements OnInit {
     if (!usuario || !pub) return;
 
     const accion = this.yaLikeo()
-      ? this.publicacionesService.quitarLike(pub.id, usuario.id)
-      : this.publicacionesService.darLike(pub.id, usuario.id);
+      ? this.publicacionesService.quitarLike(pub.id)
+      : this.publicacionesService.darLike(pub.id);
 
     accion.subscribe({
       next: () => {

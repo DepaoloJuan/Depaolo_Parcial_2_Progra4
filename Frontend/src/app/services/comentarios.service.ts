@@ -37,18 +37,16 @@ export class ComentariosService {
     );
   }
 
-  crear(publicacionId: string, usuarioId: string, mensaje: string): Observable<Comentario> {
+  // usuarioId ya no se manda — el backend lo extrae del token JWT
+  crear(publicacionId: string, mensaje: string): Observable<Comentario> {
     return this.http.post<Comentario>(`${environment.apiUrl}/comentarios`, {
       publicacionId,
-      usuarioId,
       mensaje,
     });
   }
 
-  actualizar(id: string, mensaje: string, usuarioId: string): Observable<Comentario> {
-    return this.http.put<Comentario>(
-      `${environment.apiUrl}/comentarios/${id}?usuarioId=${usuarioId}`,
-      { mensaje },
-    );
+  // usuarioId ya no se manda — el backend lo extrae del token JWT
+  actualizar(id: string, mensaje: string): Observable<Comentario> {
+    return this.http.put<Comentario>(`${environment.apiUrl}/comentarios/${id}`, { mensaje });
   }
 }
