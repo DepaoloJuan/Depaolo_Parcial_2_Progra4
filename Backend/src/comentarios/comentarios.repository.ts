@@ -11,9 +11,9 @@ export class ComentariosRepository {
     private readonly comentarioModel: Model<ComentarioDocument>,
   ) {}
 
-  // Crea un nuevo comentario en la DB
   async crear(dto: CrearComentarioDto): Promise<ComentarioDocument> {
     const comentario = new this.comentarioModel({
+      // Convertimos los IDs a ObjectId para que Mongoose los guarde con el tipo correcto
       publicacionId: new Types.ObjectId(dto.publicacionId),
       usuarioId: new Types.ObjectId(dto.usuarioId),
       mensaje: dto.mensaje,
@@ -21,27 +21,24 @@ export class ComentariosRepository {
     return comentario.save();
   }
 
-  // Busca un comentario por su ID (solo activos)
   async buscarPorId(id: string): Promise<ComentarioDocument | null> {
     return this.comentarioModel.findOne({
       _id: new Types.ObjectId(id),
-      activo: true,
+      activo: true, // solo devuelve comentarios activos (no eliminados)
     });
   }
 
-  // Modifica el mensaje y marca como modificado
-  async actualizar(
-    id: string,
-    mensaje: string,
-  ): Promise<ComentarioDocument | null> {
+  async actualizar(id: string, mensaje: string): Promise<ComentarioDocument | null> {
     return this.comentarioModel.findByIdAndUpdate(
       id,
-      { mensaje, modificado: true },
-      { new: true }, // devuelve el documento actualizado, no el anterior
+      {
+        mensaje,
+        modificado: true, // marcamos el comentario como editado para que el frontend lo muestre
+      },
+      { new: true }, // { new: true } devuelve el documento YA actualizado, no el anterior
     );
   }
 
-  // Trae comentarios de una publicación, paginados, más recientes primero
   async listarPorPublicacion(
     publicacionId: string,
     offset: number,
@@ -52,16 +49,16 @@ export class ComentariosRepository {
       activo: true,
     };
 
-    // Ejecutamos las dos queries en paralelo para no esperar una tras otra
+    // Promise.all ejecuta ambas queries en paralelo — evita esperar una para empezar la otra
     const [comentarios, total] = await Promise.all([
       this.comentarioModel
         .find(filtro)
-        .sort({ createdAt: -1 }) // más recientes primero
+        .sort({ createdAt: -1 }) // más recientes primero, como pide la consigna
         .skip(offset)
         .limit(limit)
-        .populate('usuarioId', 'nombreUsuario fotoPerfil') // traemos datos del usuario
+        .populate('usuarioId', 'nombreUsuario fotoPerfil') // traemos solo los campos que el frontend necesita
         .exec(),
-      this.comentarioModel.countDocuments(filtro),
+      this.comentarioModel.countDocuments(filtro), // total sin paginar, para calcular hayMas en el service
     ]);
 
     return { comentarios, total };

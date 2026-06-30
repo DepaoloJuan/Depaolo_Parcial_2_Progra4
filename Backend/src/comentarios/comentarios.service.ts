@@ -11,25 +11,16 @@ import { ActualizarComentarioDto } from './dto/actualizar-comentario.dto';
 export class ComentariosService {
   constructor(private readonly comentariosRepository: ComentariosRepository) {}
 
-  // Crea un nuevo comentario
   async crear(dto: CrearComentarioDto) {
     return this.comentariosRepository.crear(dto);
   }
 
-  // Modifica el mensaje de un comentario propio
-  async actualizar(
-    id: string,
-    dto: ActualizarComentarioDto,
-    usuarioId: string,
-  ) {
-    // Primero verificamos que el comentario existe
+  async actualizar(id: string, dto: ActualizarComentarioDto, usuarioId: string) {
     const comentario = await this.comentariosRepository.buscarPorId(id);
 
-    if (!comentario) {
-      throw new NotFoundException('Comentario no encontrado');
-    }
+    if (!comentario) throw new NotFoundException('Comentario no encontrado');
 
-    // Verificamos que el comentario pertenece al usuario que quiere editarlo
+    // Verificamos que quien edita sea el autor — la consigna dice "el usuario que lo escribió"
     if (comentario.usuarioId.toString() !== usuarioId) {
       throw new ForbiddenException('Solo podés editar tus propios comentarios');
     }
@@ -37,25 +28,19 @@ export class ComentariosService {
     return this.comentariosRepository.actualizar(id, dto.mensaje);
   }
 
-  // Lista comentarios de una publicación con paginación
-  async listarPorPublicacion(
-    publicacionId: string,
-    offset: number = 0,
-    limit: number = 5,
-  ) {
-    const { comentarios, total } =
-      await this.comentariosRepository.listarPorPublicacion(
-        publicacionId,
-        offset,
-        limit,
-      );
+  async listarPorPublicacion(publicacionId: string, offset = 0, limit = 5) {
+    const { comentarios, total } = await this.comentariosRepository.listarPorPublicacion(
+      publicacionId,
+      offset,
+      limit,
+    );
 
     return {
       comentarios,
       total,
       offset,
       limit,
-      // Le decimos al frontend si hay más comentarios para cargar
+      // hayMas le dice al frontend si tiene sentido mostrar el botón "cargar más"
       hayMas: offset + limit < total,
     };
   }

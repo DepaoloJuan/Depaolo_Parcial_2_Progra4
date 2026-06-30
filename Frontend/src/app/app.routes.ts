@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from './services/auth.service';
 
+// Guard para rutas protegidas: redirige al login si no hay sesión activa
 const authGuard = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
@@ -11,6 +12,8 @@ const authGuard = () => {
   return false;
 };
 
+// Guard para rutas públicas (login/registro): redirige a publicaciones si ya hay sesión
+// Evita que un usuario logueado navegue a /login y pierda su sesión
 const noAuthGuard = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
@@ -21,6 +24,7 @@ const noAuthGuard = () => {
 
 export const routes: Routes = [
   {
+    // pathMatch: 'full' es necesario para que '' no matchee como prefijo de todas las rutas
     path: '',
     pathMatch: 'full',
     loadComponent: () => import('./pages/cargando/cargando').then((m) => m.Cargando),
@@ -36,6 +40,8 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/registro/registro').then((m) => m.Registro),
   },
   {
+    // Ruta padre sin componente — el authGuard se aplica una sola vez a todas las rutas hijas
+    // Las hijas se renderizan en el <router-outlet> del ancestro más cercano (app.html)
     path: '',
     canActivate: [authGuard],
     children: [
@@ -59,6 +65,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: '',
+    redirectTo: '', // cualquier ruta desconocida va a la pantalla de cargando
   },
 ];
