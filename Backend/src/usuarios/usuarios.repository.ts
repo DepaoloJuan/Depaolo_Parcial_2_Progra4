@@ -66,19 +66,4 @@ export class UsuariosRepository {
       .exec();
   }
 
-  async listar(): Promise<UsuarioDocument[]> {
-    return this.modelo.find().exec();
-  }
-
-  async deshabilitar(id: string): Promise<UsuarioDocument | null> {
-    return this.modelo
-      .findByIdAndUpdate(id, { activo: false }, { returnDocument: 'after' })
-      .exec();
-  }
-
-  async rehabilitar(id: string): Promise<UsuarioDocument | null> {
-    return this.modelo
-      .findByIdAndUpdate(id, { activo: true }, { returnDocument: 'after' })
-      .exec();
-  }
 }
