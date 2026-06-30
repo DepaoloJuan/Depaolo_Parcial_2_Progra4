@@ -15,16 +15,15 @@ export class ComentariosController {
 
   /**
    * POST /api/v1/comentarios
-   * Crea un comentario. El usuarioId viene del token JWT, no del body.
+   * Crea un comentario. El usuarioId no forma parte del DTO — se extrae del token
+   * y se pasa al service por separado.
    */
   @Post()
   async crear(
     @Body() dto: CrearComentarioDto,
-    @UsuarioActual('usuarioId') usuarioId?: string,
+    @UsuarioActual('usuarioId') usuarioId: string,
   ) {
-    // Sobreescribimos cualquier usuarioId del body con el del token verificado
-    dto.usuarioId = usuarioId;
-    return this.comentariosService.crear(dto);
+    return this.comentariosService.crear(dto, usuarioId);
   }
 
   /**
