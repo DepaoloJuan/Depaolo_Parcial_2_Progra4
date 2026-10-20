@@ -1,6 +1,6 @@
-# Red Social — TP2 Programación IV
+# Red social · Angular + NestJS
 
-**Alumno:** Depaolo, Juan Manuel
+**Autor:** Juan Manuel Depaolo · [LinkedIn](https://linkedin.com/in/juan-manuel-depaolo) · [GitHub](https://github.com/DepaoloJuan)
 
 Aplicación de red social desarrollada para la materia Programación IV (UTN FR Avellaneda). Proyecto dividido en frontend (Angular 21) y backend (NestJS + MongoDB), construido de forma incremental en 4 sprints.
 
